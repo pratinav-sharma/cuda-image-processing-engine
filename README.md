@@ -6,19 +6,66 @@ GPU-accelerated image processing in CUDA C++, featuring custom kernels, CPU/GPU 
 The starter project converts packed RGB8 images to grayscale on a real CUDA GPU.
 The independent CPU reference and GPU kernel use integer luminance
 `(77 * R + 150 * G + 29 * B + 128) / 256`, rounded down after adding 128.
-No external image libraries or ML frameworks are required. Benchmarking and memory
-optimization remain future work; the demo currently verifies correctness.
+Image file support uses two vendored stb headers; no separate image-library
+installation or ML framework is required. Benchmarking and memory optimization
+remain future work; the demo currently verifies correctness.
 
 Targets:
 
 - `image_processing`: C++ CPU reference and CUDA kernel library.
-- `image_demo`: generates a 1920x1080 image, executes the kernel, and checks every pixel.
+- `image_io`: PNG/JPEG/BMP loading and single-channel grayscale PNG writing.
+- `image_demo`: loads an image and saves a verified grayscale PNG, or generates a
+  1920x1080 image when invoked without arguments.
 - `image_correctness`: known colors, empty/invalid input, and 28 image comparisons
   across seven sizes and four patterns (black, white, alternating, seeded random).
   Includes 1, 255, 256, and 257 pixels and non-square images to test block boundaries.
+  Also checks GPU/CPU agreement on four decoded PNG/JPEG/BMP fixtures.
+- `image_io_correctness`: checks decoded pixels, row layout, alpha handling,
+  lossless grayscale PNG roundtrips, file paths, and input/output error cases.
 
 CUDA allocation, copies, launch, and synchronization are checked. Missing GPUs and
 CUDA errors produce a nonzero exit status; there is no CPU execution fallback.
+
+## Load an image and save the grayscale result
+
+After building, run from the repository root in PowerShell:
+
+```powershell
+. .\scripts\Enter-DevEnvironment.ps1
+.\build\image_demo.exe "C:\path\to\photo.jpg" "build\photo-gray.png"
+.\build\image_demo.exe --help
+```
+
+Replace the input path with your own PNG, JPEG, or BMP file. The output must end
+in `.png`, and its parent directory must already exist. Quote paths containing
+spaces. Windows Unicode paths are supported. The app refuses to overwrite an
+existing output, including the input itself; use a new output filename each time.
+
+The app decodes packed RGB8 on the CPU, sends it to the CUDA kernel, verifies every
+GPU output byte against the CPU reference, then writes an 8-bit single-channel
+PNG at the original width and height. Open the PNG in any image viewer to see it.
+
+PNG transparency is discarded without compositing; the underlying RGB colors are
+processed. Grayscale input is expanded to RGB before conversion, and higher bit
+depth is reduced to 8-bit. EXIF orientation and color-profile transformations are
+not applied. Inputs are limited to 256 MiB encoded, 16384 pixels per dimension,
+and `64 * 1024 * 1024` pixels total. Missing, malformed, or truncated images,
+invalid dimensions, and output-write errors return a nonzero exit status.
+
+The original generated-image demo remains available:
+
+```powershell
+.\build\image_demo.exe
+```
+
+The codecs are pinned to an exact upstream stb commit, with the upstream license
+and SHA256 hashes in [third_party/stb/README.md](third_party/stb/README.md).
+
+File-support verification on this machine: all three CTest checks passed, and
+`C:\Windows\Web\Wallpaper\ThemeA\img20.jpg` was loaded as a 3840x2400 JPEG and
+converted on the RTX 4060. All 9,216,000 pixels matched the CPU reference; the
+viewable result was saved as `build\wallpaper-grayscale.png`. Generated outputs
+remain ignored by Git; the Windows wallpaper is not included in the repository.
 
 ## Windows setup
 
@@ -118,7 +165,7 @@ CUDA 13.0: it reports the runtime packaged with the display driver. See
 The installed toolkit headers report `CUDART_VERSION=13040`; the driver-provided
 runtime reported 13050 during both executions.
 
-Successful checks:
+Initial setup checks (before file I/O was added):
 
 - `nvidia-smi` GPU access before and after setup; driver remains 621.01.
 - WinGet package hash verification; CUDA installer SHA256:
