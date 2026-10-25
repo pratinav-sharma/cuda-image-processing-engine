@@ -7,8 +7,8 @@ The starter project converts packed RGB8 images to grayscale on a real CUDA GPU.
 The independent CPU reference and GPU kernel use integer luminance
 `(77 * R + 150 * G + 29 * B + 128) / 256`, rounded down after adding 128.
 Image file support uses two vendored stb headers; no separate image-library
-installation or ML framework is required. Benchmarking and memory optimization
-remain future work; the demo currently verifies correctness.
+installation or ML framework is required. The demo verifies correctness; a
+separate benchmark compares CPU, full GPU conversion, and resident-kernel timing.
 
 Targets:
 
@@ -16,12 +16,16 @@ Targets:
 - `image_io`: PNG/JPEG/BMP loading and single-channel grayscale PNG writing.
 - `image_demo`: loads an image and saves a verified grayscale PNG, or generates a
   1920x1080 image when invoked without arguments.
+- `image_benchmark`: benchmarks an actual image, prints median/p95/min/max times,
+  and optionally exports every sample as CSV and saves a verified grayscale PNG.
 - `image_correctness`: known colors, empty/invalid input, and 28 image comparisons
   across seven sizes and four patterns (black, white, alternating, seeded random).
   Includes 1, 255, 256, and 257 pixels and non-square images to test block boundaries.
   Also checks GPU/CPU agreement on four decoded PNG/JPEG/BMP fixtures.
 - `image_io_correctness`: checks decoded pixels, row layout, alpha handling,
   lossless grayscale PNG roundtrips, file paths, and input/output error cases.
+- `benchmark_correctness`: checks statistics, option bounds, measured sample
+  counts, and correctness of timed GPU execution, including partial CUDA blocks.
 
 CUDA allocation, copies, launch, and synchronization are checked. Missing GPUs and
 CUDA errors produce a nonzero exit status; there is no CPU execution fallback.
@@ -61,11 +65,91 @@ The original generated-image demo remains available:
 The codecs are pinned to an exact upstream stb commit, with the upstream license
 and SHA256 hashes in [third_party/stb/README.md](third_party/stb/README.md).
 
-File-support verification on this machine: all three CTest checks passed, and
+When file support was added, its three CTest checks passed on this machine, and
 `C:\Windows\Web\Wallpaper\ThemeA\img20.jpg` was loaded as a 3840x2400 JPEG and
 converted on the RTX 4060. All 9,216,000 pixels matched the CPU reference; the
 viewable result was saved as `build\wallpaper-grayscale.png`. Generated outputs
 remain ignored by Git; the Windows wallpaper is not included in the repository.
+
+## Benchmark CPU versus GPU on an actual image
+
+Build in **Release** mode using the commands below, then run from the repository
+root (substitute your own PNG/JPEG/BMP path):
+
+```powershell
+. .\scripts\Enter-DevEnvironment.ps1
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES=89
+cmake --build build --parallel
+.\build\image_benchmark.exe "C:\path\to\photo.jpg" --iterations 50 --warmup 5
+```
+
+To retain raw samples and a viewable result, use new output filenames:
+
+```powershell
+.\build\image_benchmark.exe "C:\path\to\photo.jpg" --iterations 50 --warmup 5 --csv "build\my-benchmark.csv" --output "build\my-benchmark-gray.png"
+.\build\image_benchmark.exe --help
+ctest --test-dir build --output-on-failure --verbose
+```
+
+Defaults are 50 measured iterations and 5 warmups. Accepted ranges are 1-10000
+iterations and 1-1000 warmups. CSV and PNG outputs are optional, preserve existing
+files, and require existing parent directories. Run without output options to
+repeat benchmarks without creating files.
+
+| Measurement | Timer and measured work |
+| --- | --- |
+| CPU full function | `steady_clock`; existing single-thread CPU conversion, including output allocation, with RGB already decoded in host memory |
+| GPU full function | `steady_clock`; existing GPU conversion, including host output allocation, device allocations, RGB upload, kernel, synchronization, grayscale download, and device-buffer frees |
+| GPU resident kernel | CUDA events around each kernel; device buffers are allocated and RGB uploaded once before timing, and final output is downloaded and checked afterward |
+
+Both full-function results end in host memory. Returned output-vector destruction
+is outside their timers. Host buffers use the current ordinary `std::vector`
+allocations. Warmups and correctness comparisons are excluded from measurements.
+CPU and full-GPU sample order alternates each iteration; their results are checked
+against the CPU reference after every measurement. The resident-kernel phase has
+its own warmups and validates its final output after all timed launches.
+
+The same decoded input is reused, so this is a warm, repeated-image benchmark.
+The CPU baseline uses one thread with compiler optimization enabled in Release.
+GPU events are synchronized before reading elapsed time, following
+[NVIDIA's timing guidance](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#timing).
+Kernel-only timing excludes transfers and allocation and represents a different
+scope from a complete CPU-to-GPU-to-CPU conversion.
+
+The report prints median, nearest-rank p95, minimum, and maximum in milliseconds.
+Ratios divide the CPU median by the GPU median: above 1 favors GPU; below 1 favors
+CPU. A zero GPU median reports `n/a` instead of dividing by zero. No outliers are
+discarded. CSV contains one row per sample per method, with input path, dimensions,
+warmup count, build configuration, method, iteration, and milliseconds.
+
+Image decode and optional PNG encode/write are timed once and printed separately.
+They are excluded from conversion speedups, as are CSV writing and console output.
+For small images, GPU launch and transfer overhead can dominate. These measurements
+describe the current implementations on the machine running the benchmark.
+
+### Recorded result on this machine
+
+On 2026-10-25, the Release build processed the existing 3840x2400 wallpaper JPEG
+(9,216,000 pixels) on an AMD Ryzen 7 7800X3D and NVIDIA RTX 4060, driver 621.01.
+Five warmups and 50 measured samples per method produced:
+
+| Method | Median ms | P95 ms | Maximum ms |
+| --- | ---: | ---: | ---: |
+| CPU full function, one thread | 10.8746 | 11.9663 | 12.6549 |
+| GPU full function, including transfers/allocations | 6.1857 | 7.7031 | 10.4124 |
+| GPU resident kernel | 0.1605 | 0.1780 | 18.3027 |
+
+The full GPU conversion was **1.7580x faster** by median time. The CPU/kernel-only
+ratio was 67.7495x; it is not the speedup of a full conversion. The 18.3027 ms
+kernel outlier is retained in the raw data. Decode took 48.8403 ms and PNG saving
+took 188.3394 ms in this run; neither is included in those ratios.
+
+All measured full-function outputs and the final resident-kernel output matched
+the CPU reference. All six CTest checks passed. Statistics were also independently
+recomputed from the CSV. See [benchmarks/README.md](benchmarks/README.md) for the
+exact recorded command, environment, and all 150 raw samples. Timings vary with
+image size, cache state, clocks, other applications, and GPU scheduling; tests
+assert correctness and bookkeeping, never performance thresholds.
 
 ## Windows setup
 
