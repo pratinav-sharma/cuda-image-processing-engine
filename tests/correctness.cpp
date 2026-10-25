@@ -1,4 +1,5 @@
 #include "grayscale.h"
+#include "image_io.h"
 #include <iostream>
 #include <random>
 #include <stdexcept>
@@ -9,7 +10,7 @@ void require(bool condition, const char* message) {
     if (!condition) throw std::runtime_error(message);
 }
 }
-int main() {
+int main(int argc, char* argv[]) {
     try {
         image::print_device_info();
         // Independent known values keep a shared CPU/GPU formula error from passing.
@@ -41,8 +42,15 @@ int main() {
                 ++cases;
             }
         }
-        std::cout << "PASS: known colors, empty/invalid inputs, and " << cases
-                  << " GPU/CPU image comparisons (including partial CUDA blocks).\n";
+        require(argc == 2, "Expected fixture directory argument");
+        const std::filesystem::path fixtures(argv[1]);
+        for (const auto* name : {"rgb.png", "rgb.jpg", "rgb.bmp", "rgba.png"}) {
+            const auto loaded = image::load_rgb(fixtures / name);
+            require(image::grayscale_gpu(loaded.pixels) == image::grayscale_cpu(loaded.pixels),
+                    "Decoded image GPU/CPU mismatch");
+        }
+        std::cout << "PASS: known colors, empty/invalid inputs, " << cases
+                  << " generated GPU/CPU comparisons, and 4 decoded image comparisons.\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';
