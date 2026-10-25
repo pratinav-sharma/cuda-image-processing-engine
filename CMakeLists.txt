@@ -15,3 +15,11 @@ set_target_properties(image_processing PROPERTIES CUDA_RUNTIME_LIBRARY Static)
 
 add_executable(image_demo src/main.cpp)
 target_link_libraries(image_demo PRIVATE image_processing)
+
+include(CTest)
+if(BUILD_TESTING)
+  add_executable(image_correctness tests/correctness.cpp)
+  target_link_libraries(image_correctness PRIVATE image_processing)
+  add_test(NAME grayscale_gpu_matches_cpu COMMAND image_correctness)
+  set_tests_properties(grayscale_gpu_matches_cpu PROPERTIES TIMEOUT 60)
+endif()
