@@ -13,8 +13,11 @@ add_library(image_processing src/grayscale.cpp src/grayscale.cu)
 target_include_directories(image_processing PUBLIC include)
 set_target_properties(image_processing PROPERTIES CUDA_RUNTIME_LIBRARY Static)
 
+add_library(image_io src/image_io.cpp)
+target_include_directories(image_io PUBLIC include PRIVATE third_party/stb)
+
 add_executable(image_demo src/main.cpp)
-target_link_libraries(image_demo PRIVATE image_processing)
+target_link_libraries(image_demo PRIVATE image_processing image_io)
 
 include(CTest)
 if(BUILD_TESTING)
