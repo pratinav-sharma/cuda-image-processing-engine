@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-add_library(image_processing src/grayscale.cpp src/grayscale.cu)
+add_library(image_processing src/grayscale.cpp src/grayscale.cu src/benchmark.cpp)
 target_include_directories(image_processing PUBLIC include)
 set_target_properties(image_processing PROPERTIES CUDA_RUNTIME_LIBRARY Static)
 

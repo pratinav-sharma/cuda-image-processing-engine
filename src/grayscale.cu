@@ -1,4 +1,5 @@
 #include "grayscale.h"
+#include "benchmark.h"
 #include <cuda_runtime.h>
 #include <iostream>
 #include <stdexcept>
@@ -15,6 +16,13 @@ struct DeviceBuffer {
     ~DeviceBuffer() { if (data) cudaFree(data); }
     DeviceBuffer(const DeviceBuffer&) = delete;
     DeviceBuffer& operator=(const DeviceBuffer&) = delete;
+};
+struct Event {
+    cudaEvent_t value{};
+    Event() { check(cudaEventCreate(&value), "cudaEventCreate"); }
+    ~Event() { cudaEventDestroy(value); }
+    Event(const Event&) = delete;
+    Event& operator=(const Event&) = delete;
 };
 __global__ void rgb_to_gray(const std::uint8_t* rgb, std::uint8_t* gray, std::size_t pixels) {
     const std::size_t pixel = static_cast<std::size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
@@ -53,5 +61,37 @@ Bytes grayscale_gpu(const Bytes& rgb) {
     check(cudaDeviceSynchronize(), "rgb_to_gray execution");
     check(cudaMemcpy(gray.data(), output.data, gray.size(), cudaMemcpyDeviceToHost), "copy grayscale to CPU");
     return gray;
+}
+
+KernelSamples measure_grayscale_kernel(const Bytes& rgb, const BenchmarkOptions& options) {
+    validate_benchmark_options(options);
+    if (rgb.empty() || rgb.size() % 3 != 0)
+        throw std::invalid_argument("Kernel benchmark requires a nonempty packed RGB image");
+    KernelSamples result;
+    result.output.resize(rgb.size() / 3);
+    result.milliseconds.reserve(options.iterations);
+    DeviceBuffer input(rgb.size()), output(result.output.size());
+    check(cudaMemcpy(input.data, rgb.data(), rgb.size(), cudaMemcpyHostToDevice), "upload benchmark RGB");
+    constexpr unsigned threads = 256;
+    const auto blocks = static_cast<unsigned>((result.output.size() + threads - 1) / threads);
+    const auto launch = [&] {
+        rgb_to_gray<<<blocks, threads>>>(input.data, output.data, result.output.size());
+        check(cudaGetLastError(), "benchmark rgb_to_gray launch");
+    };
+    for (int i = 0; i < options.warmup; ++i) launch();
+    check(cudaDeviceSynchronize(), "benchmark warmup synchronization");
+    Event start, stop;
+    for (int i = 0; i < options.iterations; ++i) {
+        check(cudaEventRecord(start.value), "record kernel start");
+        launch();
+        check(cudaEventRecord(stop.value), "record kernel stop");
+        check(cudaEventSynchronize(stop.value), "synchronize kernel stop");
+        float milliseconds = 0;
+        check(cudaEventElapsedTime(&milliseconds, start.value, stop.value), "measure kernel time");
+        result.milliseconds.push_back(milliseconds);
+    }
+    check(cudaMemcpy(result.output.data(), output.data, result.output.size(), cudaMemcpyDeviceToHost),
+          "download benchmark grayscale for validation");
+    return result;
 }
 }
