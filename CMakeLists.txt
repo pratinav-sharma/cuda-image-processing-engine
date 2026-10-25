@@ -19,6 +19,10 @@ target_include_directories(image_io PUBLIC include PRIVATE third_party/stb)
 add_executable(image_demo src/main.cpp)
 target_link_libraries(image_demo PRIVATE image_processing image_io)
 
+add_executable(image_benchmark src/benchmark_main.cpp)
+target_link_libraries(image_benchmark PRIVATE image_processing image_io)
+target_compile_definitions(image_benchmark PRIVATE IMAGE_BUILD_CONFIG="$<CONFIG>")
+
 include(CTest)
 if(BUILD_TESTING)
   add_executable(image_correctness tests/correctness.cpp)
