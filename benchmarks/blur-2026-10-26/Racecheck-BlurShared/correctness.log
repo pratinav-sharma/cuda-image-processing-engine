@@ -1,0 +1,5 @@
+========= COMPUTE-SANITIZER
+GPU: NVIDIA GeForce RTX 4060, compute capability 8.9, memory 8187 MiB
+CUDA driver API: 13050, runtime: 13050
+PASS: known blur values, edge clamping, rounding, invalid input, and 120 generated GPU/CPU comparisons.
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)

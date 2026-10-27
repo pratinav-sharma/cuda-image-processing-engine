@@ -1,0 +1,76 @@
+{
+  "started": "2026-10-26T23:03:07.2824642-07:00",
+  "status": "completed",
+  "tool": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\compute-sanitizer\\compute-sanitizer.exe",
+  "toolVersion": [
+    "NVIDIA (R) Compute Sanitizer",
+    "Copyright (c) 2020-2026 NVIDIA Corporation",
+    "Version 2026.3.0.0 (build 38637409) (public-release)"
+  ],
+  "image": "C:\\Windows\\Web\\Wallpaper\\ThemeA\\img20.jpg",
+  "imageSHA256": "6610E4C12B5CCAA2906E7584339786378D921CBAF7C4B3BC5BD585E3F955B685",
+  "executable": "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\blur_benchmark.exe",
+  "executableSHA256": "8BFEA2A46EC5FB73945CCF1C5DA035BF4328A6507D96058EBCB5D770A5D9C8EB",
+  "build": "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile",
+  "threads": 256,
+  "operation": "BlurGlobal",
+  "head": "3d5095c5ee3a222067330ece5bc960d2e0310e2c",
+  "workingTree": [
+    " M scripts/Profile-Grayscale.ps1"
+  ],
+  "gpu": [
+    "NVIDIA GeForce RTX 4060, 621.01"
+  ],
+  "commands": [
+    {
+      "program": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\compute-sanitizer\\compute-sanitizer.exe",
+      "arguments": [
+        "--tool",
+        "memcheck",
+        "--error-exitcode",
+        "42",
+        "--leak-check",
+        "full",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\blur_correctness.exe"
+      ],
+      "exitCode": 0
+    },
+    {
+      "program": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\compute-sanitizer\\compute-sanitizer.exe",
+      "arguments": [
+        "--tool",
+        "memcheck",
+        "--error-exitcode",
+        "42",
+        "--leak-check",
+        "full",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\blur_benchmark_correctness.exe"
+      ],
+      "exitCode": 0
+    },
+    {
+      "program": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\compute-sanitizer\\compute-sanitizer.exe",
+      "arguments": [
+        "--tool",
+        "memcheck",
+        "--error-exitcode",
+        "42",
+        "--leak-check",
+        "full",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\blur_benchmark.exe",
+        "C:\\Windows\\Web\\Wallpaper\\ThemeA\\img20.jpg",
+        "--iterations",
+        "10",
+        "--warmup",
+        "3",
+        "--csv",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\profiles\\blur-2026-10-26\\Memcheck-BlurGlobal\\instrumented-samples.csv",
+        "--kernel",
+        "global"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "note": "Instrumented diagnostic run. Do not use printed benchmark timings as normal performance results.",
+  "finished": "2026-10-26T23:03:16.1676626-07:00"
+}

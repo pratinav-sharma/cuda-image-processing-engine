@@ -356,6 +356,24 @@ weights from training data in another project.
 - **Practice:** Explain why this is a useful optimization experiment even though
   shared memory lost, and qualify the 14.70x number without implying full PNG-pipeline speedup.
 
+### Save the blur GPU checks
+
+- **Problem/approach:** keep proof of memory safety checks, synchronization checks
+  and profiler findings alongside the normal benchmark, while keeping diagnostic
+  timings separate. Record the source revision, executable hash and wrapper changes.
+- **Files:** diagnostic folders and expanded report under `benchmarks/blur-2026-10-26`.
+- **Validation:** all 22 commands across eight actual-image diagnostics exited
+  zero. Memcheck reported no errors/leaks, Racecheck no hazards and Synccheck no
+  errors. Both Systems traces have 26 selected kernels and both Compute reports
+  imported successfully. The grayscale default smoke test also passed.
+- **Finding:** shared uses 324 shared bytes/block and 38 registers/thread versus
+  30 for global. It has higher achieved occupancy yet runs slower. Global already
+  sees 75.50% L1/TEX hits. Tiling/barrier/indexing overhead is a plausible explanation,
+  not a measured attribution of the entire slowdown to one barrier.
+- **Practice:** Explain the actual evidence behind the performance decision,
+  distinguish logical loads from physical memory traffic, and show a sanitizer
+  log and profiler report without presenting instrumented time as a speedup.
+
 ## Entry template
 
 ### Short commit subject

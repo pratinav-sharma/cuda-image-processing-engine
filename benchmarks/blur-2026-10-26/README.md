@@ -107,3 +107,103 @@ Repeated warm-image caching, GPU clocks, Windows scheduling and other applicatio
 affect results. The CPU reference is not a tuned SIMD or multithreaded library.
 Other filters/shapes/hardware need new measurements. All 14 CTest checks passed
 in both normal and profiling Release builds. No test asserts a speed threshold.
+
+## GPU memory, synchronization and profiler evidence
+
+The profiling Release build adds CUDA source lines while retaining optimization:
+
+```powershell
+. .\scripts\Enter-DevEnvironment.ps1
+cmake -S . -B build-profile -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES=89 -DIMAGE_CUDA_LINEINFO=ON
+cmake --build build-profile --parallel
+ctest --test-dir build-profile --output-on-failure
+$photo = "C:\Windows\Web\Wallpaper\ThemeA\img20.jpg"
+foreach ($operation in "BlurGlobal", "BlurShared") {
+    .\scripts\Profile-Grayscale.ps1 -Tool Memcheck -Operation $operation -Image $photo
+    .\scripts\Profile-Grayscale.ps1 -Tool Systems -Operation $operation -Image $photo
+}
+.\scripts\Profile-Grayscale.ps1 -Tool Racecheck -Operation BlurShared -Image $photo
+.\scripts\Profile-Grayscale.ps1 -Tool Synccheck -Operation BlurShared -Image $photo
+```
+
+For counters, run these from an Administrator PowerShell in the repository:
+
+```powershell
+.\scripts\Profile-Grayscale.ps1 -Tool Compute -Operation BlurGlobal -Image "C:\Windows\Web\Wallpaper\ThemeA\img20.jpg"
+.\scripts\Profile-Grayscale.ps1 -Tool Compute -Operation BlurShared -Image "C:\Windows\Web\Wallpaper\ThemeA\img20.jpg"
+```
+
+The wrapper was being extended during these runs: metadata records C++ source
+revision `3d5095c` and the modified profiling script. The tested wrapper was then
+published in `0c24f60`; kernel sources did not change between the captures and
+that commit. The profiled executable SHA256 is
+`8bfea2a46ec5fb73945ccf1c5da035bf4328a6507d96058ebcb5d770a5d9c8eb`.
+Tools: Nsight Systems 2026.3.2.313, Nsight Compute 2026.3.0.0, Compute Sanitizer
+2026.3.0.0. The previously approved NVIDIA debugger-interface setting remained
+enabled; driver 621.01 was retained and no reboot was performed.
+
+| Diagnostic | Result and retained evidence |
+| --- | --- |
+| Global Memcheck | Three commands passed; zero errors/leaks. [Metadata](Memcheck-BlurGlobal/metadata.json), [correctness](Memcheck-BlurGlobal/correctness.log), [benchmark tests](Memcheck-BlurGlobal/benchmark-tests.log), [real image](Memcheck-BlurGlobal/real-image.log) |
+| Shared Memcheck | Three commands passed; zero errors/leaks. [Metadata](Memcheck-BlurShared/metadata.json), [correctness](Memcheck-BlurShared/correctness.log), [benchmark tests](Memcheck-BlurShared/benchmark-tests.log), [real image](Memcheck-BlurShared/real-image.log) |
+| Shared Racecheck | Three commands passed; zero reported hazards/errors/warnings. [Metadata](Racecheck-BlurShared/metadata.json), [correctness](Racecheck-BlurShared/correctness.log), [benchmark tests](Racecheck-BlurShared/benchmark-tests.log), [real image](Racecheck-BlurShared/real-image.log) |
+| Shared Synccheck | Three commands passed; zero reported errors. [Metadata](Synccheck-BlurShared/metadata.json), [correctness](Synccheck-BlurShared/correctness.log), [benchmark tests](Synccheck-BlurShared/benchmark-tests.log), [real image](Synccheck-BlurShared/real-image.log) |
+| Global Systems | Capture/stats passed; 26 kernels, 14 uploads and 14 downloads. [Metadata](Systems-BlurGlobal/metadata.json), [GPU trace](Systems-BlurGlobal/summary_cuda_gpu_trace.csv), [CPU API summary](Systems-BlurGlobal/summary_cuda_api_sum.csv) |
+| Shared Systems | Capture/stats passed; same counts. [Metadata](Systems-BlurShared/metadata.json), [GPU trace](Systems-BlurShared/summary_cuda_gpu_trace.csv), [CPU API summary](Systems-BlurShared/summary_cuda_api_sum.csv) |
+| Global Compute | Capture/detail/raw export passed. [Metadata](Compute-BlurGlobal/metadata.json), [details](Compute-BlurGlobal/compute-details.log), [raw metrics](Compute-BlurGlobal/compute-raw.csv) |
+| Shared Compute | Capture/detail/raw export passed. [Metadata](Compute-BlurShared/metadata.json), [details](Compute-BlurShared/compute-details.log), [raw metrics](Compute-BlurShared/compute-raw.csv) |
+
+All 22 commands across these eight diagnostics exited zero. Each diagnostic app
+run also completed output validation and produced 30 diagnostic samples. Checker
+correctness tests cover both variants, tiny inputs, borders and partial tiles.
+These are observations on the executed paths, not proof for all possible inputs.
+Racecheck took about 25.4 minutes for the recorded actual-image command sequence;
+use `tests\fixtures\rgb.png` instead for a shorter walkthrough. Checker timing
+output can be enormous and is never part of the normal benchmark data above.
+
+### What the kernel counters tell us
+
+Both Compute captures select one full-conversion kernel after three warmups,
+with kernel replay, cache flushing, source import and unchanged GPU clocks.
+The tool warns that clocks can vary. These instrumented single-launch durations
+are not the normal benchmark medians.
+
+| Metric | Global | Shared |
+| --- | ---: | ---: |
+| Duration under profiling, microseconds | 168.90 | 238.30 |
+| Registers/thread | 30 | 38 |
+| Application static shared bytes/block | 0 | 324 |
+| Achieved occupancy | 80.20% | 88.29% |
+| Compute throughput / peak | 71.42% | 60.74% |
+| DRAM throughput / peak | 21.03% | 14.88% |
+| L1/TEX hit rate | 75.50% | 16.15% |
+
+The shared version has higher achieved occupancy yet is slower. Occupancy alone
+is not a performance score. The global version already obtains substantial
+L1/TEX cache reuse. The shared version introduces cooperative tile indexing,
+staging and a block barrier, and uses more registers. These observations are
+consistent with that overhead outweighing the benefit of fewer explicit global
+loads for this small filter. They do not isolate the cost of each instruction
+or prove the barrier alone caused the slowdown. Hit-rate denominators differ
+between the two access patterns; a lower shared-kernel cache hit rate is not
+independently evidence of a problem.
+
+For a complete 16x16 tile the source has 9*256 logical global input reads in
+the basic version versus 18*18 cooperative input loads in the shared version.
+Those source-level counts are not physical DRAM transaction counts: caches and
+memory coalescing matter. We did not test larger filters, alternative tile sizes,
+or perform instruction/stall-counter ablations in this milestone. See
+[NVIDIA's metric definitions](https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html).
+
+Local interactive reports are under `build-profile\profiles\blur-2026-10-26`:
+
+- `Systems-BlurGlobal\blur.nsys-rep` and `Systems-BlurShared\blur.nsys-rep`.
+- `Compute-BlurGlobal\blur.ncu-repz`, SHA256
+  `a42be357240ee075f256c8301051575dc7f9c72edf3a9a9f75f750f38c803d0f`.
+- `Compute-BlurShared\blur.ncu-repz`, SHA256
+  `377d6423ba93a0b9760a08da9cd05493e6107322fd92d60c66d761d9183f4a79`.
+
+The binaries, CMake caches, full session logs and instrumented sample CSVs remain
+in ignored build directories. Portable evidence above is retained in Git. No
+required check for this blur milestone remains blocked. CNN work is a separate
+future project; the next interview-prep step is explaining and reproducing this work.

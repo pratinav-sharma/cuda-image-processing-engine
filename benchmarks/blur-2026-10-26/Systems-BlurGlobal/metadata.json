@@ -1,0 +1,63 @@
+{
+  "started": "2026-10-26T23:28:59.7414106-07:00",
+  "status": "completed",
+  "tool": "C:\\Program Files\\NVIDIA Corporation\\Nsight Systems 2026.3.2\\target-windows-x64\\nsys.exe",
+  "toolVersion": [
+    "NVIDIA Nsight Systems version 2026.3.2.313-263238521929v0"
+  ],
+  "image": "C:\\Windows\\Web\\Wallpaper\\ThemeA\\img20.jpg",
+  "imageSHA256": "6610E4C12B5CCAA2906E7584339786378D921CBAF7C4B3BC5BD585E3F955B685",
+  "executable": "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\blur_benchmark.exe",
+  "executableSHA256": "8BFEA2A46EC5FB73945CCF1C5DA035BF4328A6507D96058EBCB5D770A5D9C8EB",
+  "build": "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile",
+  "threads": 256,
+  "operation": "BlurGlobal",
+  "head": "3d5095c5ee3a222067330ece5bc960d2e0310e2c",
+  "workingTree": [
+    " M scripts/Profile-Grayscale.ps1"
+  ],
+  "gpu": [
+    "NVIDIA GeForce RTX 4060, 621.01"
+  ],
+  "commands": [
+    {
+      "program": "C:\\Program Files\\NVIDIA Corporation\\Nsight Systems 2026.3.2\\target-windows-x64\\nsys.exe",
+      "arguments": [
+        "profile",
+        "--trace=cuda",
+        "--sample=none",
+        "--cpuctxsw=none",
+        "--show-output=true",
+        "--output",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\profiles\\blur-2026-10-26\\Systems-BlurGlobal\\blur",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\blur_benchmark.exe",
+        "C:\\Windows\\Web\\Wallpaper\\ThemeA\\img20.jpg",
+        "--iterations",
+        "10",
+        "--warmup",
+        "3",
+        "--csv",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\profiles\\blur-2026-10-26\\Systems-BlurGlobal\\instrumented-samples.csv",
+        "--kernel",
+        "global"
+      ],
+      "exitCode": 0
+    },
+    {
+      "program": "C:\\Program Files\\NVIDIA Corporation\\Nsight Systems 2026.3.2\\target-windows-x64\\nsys.exe",
+      "arguments": [
+        "stats",
+        "--report",
+        "cuda_api_sum,cuda_gpu_kern_sum,cuda_gpu_mem_time_sum,cuda_gpu_trace",
+        "--format",
+        "csv",
+        "--output",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\profiles\\blur-2026-10-26\\Systems-BlurGlobal\\summary",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\profiles\\blur-2026-10-26\\Systems-BlurGlobal\\blur.nsys-rep"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "note": "Instrumented diagnostic run. Do not use printed benchmark timings as normal performance results.",
+  "finished": "2026-10-26T23:29:13.5264418-07:00"
+}

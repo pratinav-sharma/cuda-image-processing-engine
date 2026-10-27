@@ -1,0 +1,18 @@
+========= COMPUTE-SANITIZER
+GPU: NVIDIA GeForce RTX 4060, compute capability 8.9, memory 8187 MiB
+CUDA driver API: 13050, runtime: 13050
+Image: 3840x2400; blur kernel: global; build: Release
+Block: 16x16; grid: 240x150; clamp-to-edge; round (sum+4)/9
+Warmups: 3; samples per method: 10; CPU baseline: single thread
+Blur timing (ms)               Median         P95         Min         Max
+CPU full                      59.9742    109.1900     58.3628    109.1900
+GPU full                      36.8802     37.2717     36.7135     37.2717
+GPU resident kernel           30.2288     32.8735     28.8479     32.8735
+Full blur speedup (CPU/GPU): 1.6262x
+GPU full includes output/device allocations, upload, launch, wait, download, and device frees.
+Resident events exclude allocation/transfers. Warmups/checks are outside timers.
+Decode and CPU grayscale preparation (once, excluded): 58.7834 ms
+This measures blur on prepared grayscale, not the whole RGB-to-PNG pipeline.
+PASS: every measured full output and final resident output match CPU blur.
+========= LEAK SUMMARY: 0 bytes leaked in 0 allocations
+========= ERROR SUMMARY: 0 errors

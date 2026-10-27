@@ -1,0 +1,3 @@
+========= COMPUTE-SANITIZER
+PASS: blur benchmark options, counts and GPU output across both kernels and partial tiles.
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)

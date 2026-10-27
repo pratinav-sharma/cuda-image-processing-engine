@@ -272,6 +272,9 @@ On the RTX 4060, a four-round 3840x2400 comparison recorded pooled medians of
 faster than our single-thread CPU reference, with preparation/I/O excluded.
 The shared kernel was slower; the small full-function difference changed
 direction by round. See [all 1200 samples and methodology](benchmarks/blur-2026-10-26/README.md).
+Both variants passed GPU memory checks, and shared-memory race/synchronization
+checks passed. Nsight Systems and Compute captured both kernels successfully;
+the comparison record links logs, metrics, limitations and local report paths.
 
 ## Profiling build
 
