@@ -9,5 +9,10 @@ if (!$env:CUDA_PATH) { $env:CUDA_PATH = [Environment]::GetEnvironmentVariable('C
 if (!$env:CUDA_PATH) { $env:CUDA_PATH = [Environment]::GetEnvironmentVariable('CUDA_PATH', 'User') }
 if (!(Test-Path -LiteralPath "$env:CUDA_PATH\bin\nvcc.exe")) { throw 'CUDA_PATH must point to an installed CUDA Toolkit.' }
 $devPaths = @("$env:CUDA_PATH\bin", (Join-Path $vsPath 'Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin'), (Join-Path $vsPath 'Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja'))
+$profilingTools = & (Join-Path $PSScriptRoot 'Get-ProfilingTools.ps1')
+foreach ($profilingToolEntry in $profilingTools.PSObject.Properties) {
+    if ($profilingToolEntry.Value) { $devPaths += Split-Path -Parent $profilingToolEntry.Value }
+}
+$devPaths = @($devPaths | Select-Object -Unique)
 $env:PATH = ($devPaths -join ';') + ';' + $env:PATH
 Write-Host "CUDA C++ environment ready: $env:CUDA_PATH"
