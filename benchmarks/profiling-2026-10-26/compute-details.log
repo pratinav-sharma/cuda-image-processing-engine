@@ -1,0 +1,85 @@
+[32232] image_benchmark.exe@127.0.0.1
+  <unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long) (36000, 1, 1)x(256, 1, 1), Context 1, Stream 7, Device 0, CC 8.9
+    Warning: Data collection happened without fixed GPU frequencies. Profiling results may be inconsistent.
+    Section: GPU Speed Of Light Throughput
+    ----------------------- ----------- ------------
+    Metric Name             Metric Unit Metric Value
+    ----------------------- ----------- ------------
+    DRAM Frequency                  Ghz         8.24
+    SM Frequency                    Ghz         2.46
+    Elapsed Cycles                cycle      333,207
+    Memory Throughput                 %        88.73
+    DRAM Throughput                   %        88.73
+    Duration                         us       135.20
+    L1/TEX Cache Throughput           %        37.33
+    L2 Cache Throughput               %        26.15
+    SM Active Cycles              cycle   321,472.92
+    Compute (SM) Throughput           %        36.93
+    ----------------------- ----------- ------------
+
+    INF   This workload is utilizing greater than 80.0% of the available compute or memory performance of this device.
+          To further improve performance, work will likely need to be shifted from the most utilized to another unit.
+          Start by analyzing DRAM in the Memory Workload Analysis section.
+
+    Section: Memory Workload Analysis
+    --------------------------------------- ----------- ------------
+    Metric Name                             Metric Unit Metric Value
+    --------------------------------------- ----------- ------------
+    Local Memory Spilling Requests                                 0
+    Local Memory Spilling Request Overhead            %            0
+    L2 Sector Promotion Misses                        %            0
+    Shared Memory Spilling Requests                                0
+    Shared Memory Spilling Request Overhead           %            0
+    Memory Throughput                           Gbyte/s       233.97
+    Mem Busy                                          %        20.04
+    Max Bandwidth                                     %        88.73
+    L1/TEX Hit Rate                                   %        66.35
+    L2 Persisting Size                            Mbyte         4.72
+    L2 Compression Success Rate                       %            0
+    L2 Compression Ratio                                           0
+    L2 Compression Input Sectors                 sector            0
+    L2 Hit Rate                                       %        25.09
+    Mem Pipes Busy                                    %        36.93
+    --------------------------------------- ----------- ------------
+
+    Section: Launch Statistics
+    -------------------------------- --------------- ---------------
+    Metric Name                          Metric Unit    Metric Value
+    -------------------------------- --------------- ---------------
+    Block Size                                                   256
+    Function Cache Configuration                     CachePreferNone
+    Grid Size                                                 36,000
+    Registers Per Thread             register/thread              16
+    Shared Memory Configuration Size           Kbyte           16.38
+    Driver Shared Memory Per Block       Kbyte/block            1.02
+    Dynamic Shared Memory Per Block       byte/block               0
+    Static Shared Memory Per Block        byte/block               0
+    # SMs                                         SM              24
+    Stack Size                                                 1,024
+    Threads                                   thread       9,216,000
+    # TPCs                                                        12
+    Enabled TPC IDs                                              all
+    Uses Green Context                                             0
+    Waves Per SM                                                 250
+    -------------------------------- --------------- ---------------
+
+    Section: Occupancy
+    ------------------------------- ----------- ------------
+    Metric Name                     Metric Unit Metric Value
+    ------------------------------- ----------- ------------
+    Block Limit SM                        block           24
+    Block Limit Registers                 block           16
+    Block Limit Shared Mem                block           16
+    Block Limit Warps                     block            6
+    Theoretical Active Warps per SM        warp           48
+    Theoretical Occupancy                     %          100
+    Achieved Occupancy                        %        76.72
+    Achieved Active Warps Per SM           warp        36.82
+    ------------------------------- ----------- ------------
+
+    OPT   Est. Local Speedup: 23.28%
+          The difference between calculated theoretical (100.0%) and measured achieved occupancy (76.7%) can be the
+          result of warp scheduling overheads or workload imbalances during the kernel execution. Load imbalances can
+          occur between warps within a block as well as across blocks of the same kernel. See the CUDA Best Practices
+          Guide (https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#occupancy) for more details on
+          optimizing occupancy.

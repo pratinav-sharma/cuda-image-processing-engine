@@ -1,0 +1,76 @@
+{
+    "started":  "2026-10-26T22:43:08.0837021-07:00",
+    "status":  "completed",
+    "tool":  "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\compute-sanitizer\\compute-sanitizer.exe",
+    "toolVersion":  [
+                        "NVIDIA (R) Compute Sanitizer",
+                        "Copyright (c) 2020-2026 NVIDIA Corporation",
+                        "Version 2026.3.0.0 (build 38637409) (public-release)"
+                    ],
+    "image":  "C:\\Windows\\Web\\Wallpaper\\ThemeA\\img20.jpg",
+    "imageSHA256":  "6610E4C12B5CCAA2906E7584339786378D921CBAF7C4B3BC5BD585E3F955B685",
+    "executable":  "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\image_benchmark.exe",
+    "executableSHA256":  "CF8641670F40D9F812D6A05B11684C16B89369B91C87345470D222663A4CE8CD",
+    "build":  "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile",
+    "threads":  256,
+    "head":  "8a475efbd047711c02ee7bbbe15652b8c5e0038a",
+    "workingTree":  [
+
+                    ],
+    "gpu":  [
+                "NVIDIA GeForce RTX 4060, 621.01"
+            ],
+    "commands":  [
+                     {
+                         "program":  "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\compute-sanitizer\\compute-sanitizer.exe",
+                         "arguments":  [
+                                           "--tool",
+                                           "memcheck",
+                                           "--leak-check",
+                                           "full",
+                                           "--error-exitcode",
+                                           "42",
+                                           "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\image_correctness.exe",
+                                           "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\tests\\fixtures"
+                                       ],
+                         "exitCode":  0
+                     },
+                     {
+                         "program":  "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\compute-sanitizer\\compute-sanitizer.exe",
+                         "arguments":  [
+                                           "--tool",
+                                           "memcheck",
+                                           "--leak-check",
+                                           "full",
+                                           "--error-exitcode",
+                                           "42",
+                                           "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\benchmark_correctness.exe"
+                                       ],
+                         "exitCode":  0
+                     },
+                     {
+                         "program":  "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\compute-sanitizer\\compute-sanitizer.exe",
+                         "arguments":  [
+                                           "--tool",
+                                           "memcheck",
+                                           "--leak-check",
+                                           "full",
+                                           "--error-exitcode",
+                                           "42",
+                                           "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\image_benchmark.exe",
+                                           "C:\\Windows\\Web\\Wallpaper\\ThemeA\\img20.jpg",
+                                           "--iterations",
+                                           "10",
+                                           "--warmup",
+                                           "3",
+                                           "--threads",
+                                           "256",
+                                           "--csv",
+                                           "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\profiles\\approved-20261026-224124-570\\memcheck\\instrumented-samples.csv"
+                                       ],
+                         "exitCode":  0
+                     }
+                 ],
+    "note":  "Instrumented diagnostic run. Do not use printed benchmark timings as normal performance results.",
+    "finished":  "2026-10-26T22:43:16.1431261-07:00"
+}

@@ -307,11 +307,11 @@ for upload, 0.142385 ms for the kernel, and 0.928101 ms for download. These
 diagnostic durations help explain the workload; they are not full-conversion
 benchmark times.
 
-Nsight Compute counter collection is currently blocked by administrator access;
-the elevated retry was canceled at the Windows prompt. Compute Sanitizer is
-blocked by its disabled WDDM debugger interface. Both tools are installed, but
-neither check has a successful result yet. Their failed logs and precise retry
-steps are retained in the profiling record.
+After user-approved debugger enablement, Compute Sanitizer passed the image
+correctness tests, benchmark tests, and actual-image benchmark with zero errors
+and zero leaked bytes. An elevated Nsight Compute run captured and imported the
+kernel report successfully. Its memory/launch/occupancy metrics and both the
+initial failures and successful results are retained in the profiling record.
 
 ## Windows setup
 

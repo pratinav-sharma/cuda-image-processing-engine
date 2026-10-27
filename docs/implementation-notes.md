@@ -248,6 +248,21 @@ weights from training data in another project.
   with the following profiling evidence update.
 - **Practice:** How can capture succeed even when the wrapper script reports failure?
 
+### Save the GPU checks
+
+- **Problem/approach:** resolve the initial permission/interface blockers with
+  user-approved debugger enablement and an elevated capture. Save successful
+  memory checks and kernel metrics, while preserving the original failures.
+- **Files:** `benchmarks/profiling-2026-10-26`, README.
+- **Validation:** all three Memcheck commands exited 0 with zero reported errors
+  and leaked bytes. Fresh Compute capture/import/raw export all exited 0 and
+  the app produced 30 validated samples. Source import also displayed CUDA code.
+  Driver stayed 621.01; no reboot or global PowerShell policy change.
+- **Finding:** 88.73% DRAM versus 36.93% compute throughput suggests GPU-memory
+  bandwidth pressure. 76.72% achieved occupancy is not an automatic speedup claim.
+- **Practice:** Explain what Memcheck proved for these runs, what it did not prove,
+  and why profiler timings are separate from normal benchmark results.
+
 ## Entry template
 
 ### Short commit subject

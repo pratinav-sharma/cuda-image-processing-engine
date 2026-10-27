@@ -1,0 +1,25 @@
+========= COMPUTE-SANITIZER
+GPU: NVIDIA GeForce RTX 4060, compute capability 8.9, memory 8187 MiB
+CUDA driver API: 13050, runtime: 13050
+Input: C:\Windows\Web\Wallpaper\ThemeA\img20.jpg
+Image: 3840x2400 (9216000 pixels)
+Build: Release; CPU baseline: single thread
+Warmups: 3; measured samples per method: 10
+Threads per block: 256; blocks: 36000; GPU/kernel thread limit: 1024
+
+Conversion timing (milliseconds)          Median         P95         Min         Max
+CPU function (host -> host)              10.8216     11.8250     10.2833     11.8250
+GPU full function (host -> host)         17.9062     19.2236     17.4349     19.2236
+GPU kernel (resident device data)        11.8789     11.9739     11.4020     11.9739
+
+Full GPU conversion speedup (CPU/GPU): 0.6044x
+Kernel-only timing ratio (CPU/kernel): 0.9110x
+A ratio above 1 favors GPU; below 1 favors CPU. Kernel-only is not full conversion speedup.
+Full GPU includes output/device allocation, upload, kernel, synchronization, download, and device frees.
+Kernel events exclude allocations/transfers; buffers stay on the device and output is checked afterward.
+CPU/GPU full measurements alternate order; CPU/GPU output checks are outside timers.
+Image decode (once, excluded from conversion timings): 48.7179 ms
+PASS: measured CPU/GPU full outputs and final resident-kernel output match the CPU reference.
+Raw samples saved: C:\Users\prati\OneDrive\Documents\ChatGPT\New project\cuda-image-processing-engine\build-profile\profiles\approved-20261026-224124-570\memcheck\instrumented-samples.csv
+========= LEAK SUMMARY: 0 bytes leaked in 0 allocations
+========= ERROR SUMMARY: 0 errors

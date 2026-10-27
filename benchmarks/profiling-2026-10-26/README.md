@@ -106,11 +106,10 @@ remain in the ignored build directory; portable CSV evidence is retained here.
 | --- | --- |
 | Profiling Release build and CTest | Passed, 9/9 tests |
 | Nsight Systems actual-image capture | Passed; 26 kernels and 30 validated diagnostic samples |
-| Nsight Compute non-elevated capture | Failed with `ERR_NVGPUCTRPERM`, exit 1; no kernel-counter report |
-| Nsight Compute elevated retry | Windows elevation was canceled; capture did not run |
-| Compute Sanitizer | Failed to initialize the WDDM debugger interface, exit 42; no successful memory check |
+| Nsight Compute elevated capture and imports | Passed; one kernel captured, readable/raw reports exported, three commands exited 0 |
+| Compute Sanitizer | Passed correctness tests, benchmark tests, and real-image benchmark; zero errors/leaks, all three commands exited 0 |
 
-The failed [Compute log](compute-permission.log) and
+The initial failed [Compute log](compute-permission.log) and
 [Sanitizer log](memcheck-interface.log), with their respective
 [Compute metadata](compute-failed-metadata.json) and
 [Sanitizer metadata](memcheck-failed-metadata.json), are retained. The application
@@ -134,14 +133,68 @@ Its complete command is:
 REG ADD "HKLM\SOFTWARE\NVIDIA Corporation\GPUDebugger" /f /v EnableInterface /t REG_DWORD /d 1
 ```
 
-That registry key was absent when inspected. Enabling it needs administrator
-rights and user approval to change the GPU debugger configuration; it was left
-unchanged during this capture. After approval and successful enablement, rerun:
+That registry key was absent when inspected. The user subsequently approved
+enabling it. NVIDIA's script set `EnableInterface=1` successfully with administrator
+rights. The [previous state](debugger-before.json) was saved before the change;
+a second backup is under `%LOCALAPPDATA%\cuda-image-processing-engine` as
+`gpu-debugger-before-20261026-224306-588.json`. No reboot was needed. Rerun with:
 
 ```powershell
 .\scripts\Profile-Grayscale.ps1 -Tool Memcheck -Image "C:\Windows\Web\Wallpaper\ThemeA\img20.jpg" -OutputDirectory "build-profile\profiles\memcheck-enabled-retry"
 ```
 
-Driver version 621.01 was preserved and no reboot was performed. Counter metrics,
-source-correlated counter analysis, and successful GPU memory-error checking
-remain unverified until these prerequisites are resolved.
+### Successful memory checks
+
+The completed run is in
+`build-profile\profiles\approved-20261026-224124-570\memcheck`.
+[Passed metadata](memcheck-passed-metadata.json) records source revision `8a475ef`,
+the executable hash, exact arguments and zero exit codes. Logs:
+
+- [Correctness](memcheck-correctness.log): known colors, invalid/empty input,
+  28 generated comparisons and four decoded images; zero errors and zero leaks.
+- [Benchmark tests](memcheck-benchmark-tests.log): statistics, counts, launch
+  sizes/limits and timed GPU output agreement; zero errors and zero leaks.
+- [Actual image](memcheck-real-image.log): 3840x2400 JPEG, 3 warmups and 10 samples
+  per method, validated against CPU; zero errors and zero leaks.
+
+These checks cover the executed paths and inputs. They are not a proof for every
+possible input, and their instrumented timings are not performance benchmarks.
+
+### Successful kernel-counter capture
+
+The first elevated capture succeeded, but our import assumed `.ncu-rep` while
+Nsight wrote compressed `.ncu-repz`. Commit `Read compressed GPU reports` fixed
+the import path selection. A fresh full workflow at revision `01334b1` succeeded,
+including capture, detail export, raw export, and all 30 validated app samples.
+Its [metadata](compute-passed-metadata.json), [details](compute-details.log), and
+[raw metrics](compute-raw.csv) are retained. The local interactive report is
+`build-profile\profiles\approved-20261026-224124-570\compute-verified\grayscale.ncu-repz`,
+SHA256 `02f314d39645b7b57b7e9e9fb5c498e7886b690590a05308d98ee90a2e2687c4`.
+
+| Metric | Recorded value |
+| --- | ---: |
+| Kernel duration under profiling | 135.20 microseconds |
+| DRAM throughput / peak | 88.73% |
+| Memory throughput | 233.97 GB/s |
+| Compute throughput / peak | 36.93% |
+| Registers/thread | 16 |
+| Threads/block; blocks | 256; 36,000 |
+| Application static/dynamic shared bytes/block | 0; 0 |
+| Theoretical / achieved occupancy | 100% / 76.72% |
+
+The high DRAM throughput relative to compute throughput suggests this kernel is
+primarily constrained by GPU memory bandwidth in this capture. Occupancy is the
+active-warps fraction of the hardware maximum; it is not a direct speed score,
+and the tool's estimated local speedup is not a measured optimization result.
+See [NVIDIA's metric definitions](https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html).
+
+The capture selects the first measured full-conversion kernel after three warmup
+launches. Kernel replay and cache flushing are enabled. GPU clocks are left
+unchanged, which the tool flags as a source of variability. It is one launch,
+not a timing distribution, and excludes host/device transfers. Do not compare
+its duration directly to uninstrumented median benchmark times.
+
+Source import was enabled; `ncu --import <report> --page source --print-source cuda`
+successfully displayed the CUDA source. The exported source view stays beside
+the local report as `compute-source.txt`. Instruction-level source counters were
+not requested in this baseline capture. Driver version 621.01 was preserved.
