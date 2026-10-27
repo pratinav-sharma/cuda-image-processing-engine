@@ -229,6 +229,74 @@ tools connect GPU instructions to source lines while retaining Release
 optimization; it does not enable the `-G` device-debug build mode. Keep timings
 collected under a profiler separate from ordinary benchmark results.
 
+On this Windows setup, add the matching NVIDIA tools with the selective toolkit
+installer (the existing compiler/runtime packages remain installed):
+
+```powershell
+winget install --id Nvidia.CUDA --exact --version 13.4 --source winget --force --silent --accept-package-agreements --accept-source-agreements --disable-interactivity --override '-s nsight_compute_13.4 nsight_systems_13.4 sanitizer_13.4 -n'
+.\scripts\Set-UserEnvironment.ps1
+. .\scripts\Enter-DevEnvironment.ps1
+nsys --version
+ncu --version
+compute-sanitizer --version
+```
+
+WinGet verifies the installer hash. Approve Windows' administrator prompt when
+requested; no driver package is selected and `-n` prevents an automatic reboot.
+`Set-UserEnvironment.ps1` backs up existing user settings and adds installed tool
+directories to PATH. The developer-shell script also discovers these tools for
+the current terminal.
+
+After building, run each diagnostic separately:
+
+```powershell
+.\scripts\Profile-Grayscale.ps1 -Tool Systems -Image "C:\path\to\photo.jpg"
+.\scripts\Profile-Grayscale.ps1 -Tool Compute -Image "C:\path\to\photo.jpg"
+.\scripts\Profile-Grayscale.ps1 -Tool Memcheck -Image "C:\path\to\photo.jpg"
+```
+
+Each run creates a new folder under `build-profile\profiles`, prints its path,
+and retains logs, diagnostic-only `instrumented-samples.csv`, the CMake cache, image/executable SHA256 hashes, Git revision
+and working-tree status, GPU/driver identification, tool version, exact argument
+arrays, and command exit codes in `metadata.json`. Optional `-OutputDirectory`
+must name a new directory; existing reports are preserved. `-Threads` defaults
+to 256; `-BuildDirectory` defaults to `build-profile` beside the source tree.
+
+- **Systems** saves a `.nsys-rep` timeline and CSV summaries of CUDA API calls,
+  kernels, GPU transfers, and individual GPU operations. CPU sampling and context
+  switch collection are disabled; this capture focuses on CUDA activity.
+- **Compute** saves a `.ncu-rep` for the first full-conversion kernel after the
+  three warmup launches. It collects launch configuration, occupancy, speed-of-light,
+  and memory-workload sections, with kernel replay and cache flushing enabled.
+  It leaves GPU clocks unchanged and imports source for line correlation. The
+  saved report is also exported to `compute-details.log` and `compute-raw.csv`.
+- **Memcheck** runs the existing image correctness tests, benchmark correctness
+  tests, and actual-image benchmark under Compute Sanitizer, with full leak
+  checking. `--error-exitcode 42` turns detected memory errors into a failed run.
+
+The diagnostic benchmark uses 3 warmups and 10 iterations per method. The
+complete run normally launches 26 kernels: 3 full-function warmups, 10 measured
+full conversions, 3 resident-kernel warmups, and 10 measured resident kernels.
+Compute collects one selected launch and may replay it several times. Printed
+benchmark timings during any diagnostic include instrumentation effects and
+must not be compared with ordinary benchmark results. Use the normal benchmark
+commands above for performance measurements.
+
+If Compute reports `ERR_NVGPUCTRPERM`, run the same command from an Administrator
+PowerShell session; it needs permission to read GPU performance counters. There
+is no need to change driver versions or globally open counter access.
+
+If Memcheck reports `Failed to initialize WDDM debugger interface`, it has **not**
+checked the kernel successfully, even if the application prints a correctness
+pass. NVIDIA supplies `compute-sanitizer\EnableDebuggerInterface.bat` under
+`CUDA_PATH`; it sets the machine registry value
+`HKLM\SOFTWARE\NVIDIA Corporation\GPUDebugger\EnableInterface` (DWORD) to `1`.
+Enabling that interface requires administrator rights and an explicit decision
+to change this machine setting. The profiling script never changes it
+automatically. Keep the failed log, then rerun Memcheck into a new output folder
+after the interface is enabled. No successful sanitizer result should be claimed
+from an initialization failure.
+
 ## Windows setup
 
 Use 64-bit Windows, an NVIDIA GPU and driver, CUDA Toolkit, Visual Studio 2022

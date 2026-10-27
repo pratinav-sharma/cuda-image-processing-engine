@@ -8,7 +8,7 @@ foreach ($toolDefinition in @(
     @{ Name = 'compute-sanitizer'; Folder = ''; Relative = @('compute-sanitizer\compute-sanitizer.exe') }
 )) {
     $command = Get-Command $toolDefinition.Name -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-    $path = if ($command) { $command.Source } else { $null }
+    $path = if ($command -and [IO.Path]::GetExtension($command.Source) -eq '.exe') { $command.Source } else { $null }
     if (!$path) {
         $roots = if ($toolDefinition.Folder) {
             @(Get-ChildItem -LiteralPath $nvidiaRoot -Directory -Filter $toolDefinition.Folder -ErrorAction SilentlyContinue |
@@ -24,6 +24,7 @@ foreach ($toolDefinition in @(
             if ($path) { break }
         }
     }
+    if (!$path -and $command) { $path = $command.Source }
     $tools[$toolDefinition.Name] = $path
 }
 [pscustomobject]$tools
