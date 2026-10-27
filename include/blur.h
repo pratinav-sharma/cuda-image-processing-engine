@@ -6,7 +6,7 @@ namespace image {
 void validate_blur_input(const Bytes& gray, int width, int height);
 // 3x3 mean, clamp-to-edge sampling, nearest integer: (sum + 4) / 9.
 Bytes box_blur_cpu(const Bytes& gray, int width, int height);
-enum class BlurKernel { Global };
-// Each output pixel reads nine input samples from device global memory.
+enum class BlurKernel { Global, Shared };
+// Global reads nine device samples per pixel; Shared cooperatively stages a tile.
 Bytes box_blur_gpu(const Bytes& gray, int width, int height, BlurKernel kernel = BlurKernel::Global);
 }

@@ -15,6 +15,8 @@ template<class Function> void rejects(Function function) {
 void check_known(const image::Bytes& input, int width, int height, const image::Bytes& expected) {
     expect(image::box_blur_cpu(input, width, height) == expected, "CPU blur differs from hand-calculated result");
     expect(image::box_blur_gpu(input, width, height) == expected, "GPU blur differs from hand-calculated result");
+    expect(image::box_blur_gpu(input, width, height, image::BlurKernel::Shared) == expected,
+           "Shared GPU blur differs from hand-calculated result");
 }
 }
 int main() {
@@ -55,10 +57,12 @@ int main() {
                 const auto before = input;
                 expect(image::box_blur_gpu(input, width, height) == image::box_blur_cpu(input, width, height),
                        "GPU/CPU blur mismatch on generated input");
+                expect(image::box_blur_gpu(input, width, height, image::BlurKernel::Shared) == image::box_blur_cpu(input, width, height),
+                       "Shared GPU/CPU blur mismatch on generated input");
                 expect(input == before, "Blur modified its input");
             }
         }
-        std::cout << "PASS: known blur values, edge clamping, rounding, invalid input, and 60 generated GPU/CPU comparisons.\n";
+        std::cout << "PASS: known blur values, edge clamping, rounding, invalid input, and 120 generated GPU/CPU comparisons.\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';

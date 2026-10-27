@@ -288,6 +288,20 @@ weights from training data in another project.
 - **Practice:** How does a 2D thread coordinate map to a row-major pixel address,
   and why don't these threads need to wait for one another?
 
+### Share pixels within each block
+
+- **Problem/approach:** neighboring 3x3 outputs reread overlapping pixels. Stage
+  an 18x18 input tile (including its one-pixel halo) in shared memory for each
+  16x16 block. Threads cooperatively load unique tile cells, synchronize once,
+  then compute from the tile. All threads reach the barrier before bounds returns.
+- **Files:** `src/blur.cu`, `include/blur.h`, both variants in `tests/blur.cpp`.
+- **Validation:** hand-calculated cases and 120 generated CPU/GPU comparisons
+  passed in the ten-check suite, including partial tiles and single-pixel images.
+  Sanitizer/race/synchronization checks and timing comparisons are recorded later.
+- **Practice:** What is a halo? Why is returning early safe in the global kernel
+  but unsafe before the shared kernel's barrier? Why might caches make this
+  shared version slower despite fewer explicit global reads?
+
 ## Entry template
 
 ### Short commit subject

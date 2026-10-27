@@ -35,18 +35,49 @@ __global__ void box_blur_global(const std::uint8_t* input, std::uint8_t* output,
     }
     output[static_cast<std::size_t>(y) * width + x] = static_cast<std::uint8_t>((sum + 4u) / 9u);
 }
+__global__ void box_blur_shared(const std::uint8_t* input, std::uint8_t* output, int width, int height) {
+    // One-pixel halo around a 16x16 output tile: 18x18 input samples.
+    constexpr int side = tile_size + 2;
+    __shared__ std::uint8_t tile[side][side];
+    const int tx = static_cast<int>(threadIdx.x), ty = static_cast<int>(threadIdx.y);
+    const int origin_x = static_cast<int>(blockIdx.x) * tile_size;
+    const int origin_y = static_cast<int>(blockIdx.y) * tile_size;
+    const int lane = ty * tile_size + tx;
+    for (int index = lane; index < side * side; index += tile_size * tile_size) {
+        const int tile_y = index / side, tile_x = index % side;
+        const int row = clamp_coordinate(origin_y + tile_y - 1, height);
+        const int column = clamp_coordinate(origin_x + tile_x - 1, width);
+        tile[tile_y][tile_x] = input[static_cast<std::size_t>(row) * width + column];
+    }
+    // Every thread participates, including threads outside a partial image tile.
+    // Returning before this barrier would leave neighbors' tile data incomplete.
+    __syncthreads();
+    const int x = origin_x + tx, y = origin_y + ty;
+    if (x >= width || y >= height) return;
+    unsigned sum = 0;
+    for (int dy = 0; dy < 3; ++dy)
+        for (int dx = 0; dx < 3; ++dx) sum += tile[ty + dy][tx + dx];
+    output[static_cast<std::size_t>(y) * width + x] = static_cast<std::uint8_t>((sum + 4u) / 9u);
+}
+void validate_kernel(image::BlurKernel kernel) {
+    if (kernel != image::BlurKernel::Global && kernel != image::BlurKernel::Shared)
+        throw std::invalid_argument("Unknown blur kernel");
+}
 void launch_blur(const std::uint8_t* input, std::uint8_t* output, int width, int height, image::BlurKernel kernel) {
-    if (kernel != image::BlurKernel::Global) throw std::invalid_argument("Unknown blur kernel");
+    validate_kernel(kernel);
     const dim3 block(tile_size, tile_size);
     const dim3 grid((width + tile_size - 1) / tile_size, (height + tile_size - 1) / tile_size);
-    box_blur_global<<<grid, block>>>(input, output, width, height);
+    if (kernel == image::BlurKernel::Global)
+        box_blur_global<<<grid, block>>>(input, output, width, height);
+    else
+        box_blur_shared<<<grid, block>>>(input, output, width, height);
     check(cudaGetLastError(), "box blur launch");
 }
 }
 namespace image {
 Bytes box_blur_gpu(const Bytes& gray, int width, int height, BlurKernel kernel) {
     validate_blur_input(gray, width, height);
-    if (kernel != BlurKernel::Global) throw std::invalid_argument("Unknown blur kernel");
+    validate_kernel(kernel);
     Bytes output(gray.size());
     DeviceBuffer input_device(gray.size()), output_device(gray.size());
     check(cudaMemcpy(input_device.data, gray.data(), gray.size(), cudaMemcpyHostToDevice), "upload blur input");
