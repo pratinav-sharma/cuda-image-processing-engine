@@ -20,7 +20,9 @@ int main(int argc, char* argv[]) {
         require(image::grayscale_gpu(colors) == expected, "GPU known-color mismatch");
         require(image::grayscale_cpu({}).empty(), "CPU empty-input mismatch");
         require(image::grayscale_gpu({}).empty(), "GPU empty-input mismatch");
-        for (const auto convert : {image::grayscale_cpu, image::grayscale_gpu}) {
+        // Wrap the configurable GPU API so both callables take just the input.
+        using Convert = image::Bytes (*)(const image::Bytes&);
+        for (const Convert convert : {image::grayscale_cpu, +[](const image::Bytes& rgb) { return image::grayscale_gpu(rgb); }}) {
             bool rejected = false;
             try { convert({1,2}); } catch (const std::invalid_argument&) { rejected = true; }
             require(rejected, "Incomplete RGB pixel was accepted");

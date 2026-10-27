@@ -11,6 +11,8 @@ void validate_benchmark_options(const BenchmarkOptions& options) {
         throw std::invalid_argument("Iterations must be between 1 and 10000");
     if (options.warmup < 1 || options.warmup > 1000)
         throw std::invalid_argument("Warmup count must be between 1 and 1000");
+    if (options.threads_per_block < 1 || options.threads_per_block > 1024)
+        throw std::invalid_argument("Threads per block must be between 1 and 1024");
 }
 
 TimingSummary summarize_timings(const std::vector<double>& milliseconds) {
@@ -31,7 +33,7 @@ BenchmarkResult benchmark_grayscale(const Bytes& rgb, const BenchmarkOptions& op
         throw std::invalid_argument("Benchmark requires a nonempty packed RGB image");
     const auto reference = grayscale_cpu(rgb);
     for (int i = 0; i < options.warmup; ++i) {
-        if (grayscale_cpu(rgb) != reference || grayscale_gpu(rgb) != reference)
+        if (grayscale_cpu(rgb) != reference || grayscale_gpu(rgb, options.threads_per_block) != reference)
             throw std::runtime_error("CPU/GPU mismatch during warmup");
     }
     BenchmarkResult result;
@@ -47,7 +49,7 @@ BenchmarkResult benchmark_grayscale(const Bytes& rgb, const BenchmarkOptions& op
     };
     const auto gpu_sample = [&] {
         const auto start = Clock::now();
-        auto output = grayscale_gpu(rgb); // Includes synchronization and internal buffer frees.
+        auto output = grayscale_gpu(rgb, options.threads_per_block); // Includes synchronization and internal buffer frees.
         const auto stop = Clock::now();
         result.gpu_total_ms.push_back(std::chrono::duration<double, std::milli>(stop - start).count());
         if (output != reference) throw std::runtime_error("GPU mismatch during measurement");

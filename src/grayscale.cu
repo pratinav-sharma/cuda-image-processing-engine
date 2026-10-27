@@ -1,6 +1,7 @@
 #include "grayscale.h"
 #include "benchmark.h"
 #include <cuda_runtime.h>
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -48,13 +49,26 @@ void print_device_info() {
               << ", memory " << props.totalGlobalMem / (1024 * 1024) << " MiB\n"
               << "CUDA driver API: " << driver << ", runtime: " << runtime << '\n';
 }
-Bytes grayscale_gpu(const Bytes& rgb) {
+unsigned max_grayscale_threads_per_block() {
+    int device = 0;
+    check(cudaGetDevice(&device), "cudaGetDevice");
+    cudaDeviceProp props{};
+    check(cudaGetDeviceProperties(&props, device), "query launch limits");
+    cudaFuncAttributes attributes{};
+    check(cudaFuncGetAttributes(&attributes, rgb_to_gray), "query kernel launch limits");
+    return static_cast<unsigned>(std::min({props.maxThreadsPerBlock, props.maxThreadsDim[0], attributes.maxThreadsPerBlock}));
+}
+Bytes grayscale_gpu(const Bytes& rgb, unsigned threads_per_block) {
+    if (threads_per_block < 1 || threads_per_block > 1024)
+        throw std::invalid_argument("Threads per block must be between 1 and 1024");
     if (rgb.size() % 3 != 0) throw std::invalid_argument("RGB input must contain complete pixels");
     Bytes gray(rgb.size() / 3);
     if (gray.empty()) return gray;
+    if (threads_per_block > max_grayscale_threads_per_block())
+        throw std::invalid_argument("Threads per block exceed the active GPU/kernel limit");
     DeviceBuffer input(rgb.size()), output(gray.size());
     check(cudaMemcpy(input.data, rgb.data(), rgb.size(), cudaMemcpyHostToDevice), "copy RGB to GPU");
-    constexpr unsigned threads = 256;
+    const unsigned threads = threads_per_block;
     const auto blocks = static_cast<unsigned>((gray.size() + threads - 1) / threads);
     rgb_to_gray<<<blocks, threads>>>(input.data, output.data, gray.size());
     check(cudaGetLastError(), "rgb_to_gray launch");
@@ -67,12 +81,14 @@ KernelSamples measure_grayscale_kernel(const Bytes& rgb, const BenchmarkOptions&
     validate_benchmark_options(options);
     if (rgb.empty() || rgb.size() % 3 != 0)
         throw std::invalid_argument("Kernel benchmark requires a nonempty packed RGB image");
+    if (options.threads_per_block > max_grayscale_threads_per_block())
+        throw std::invalid_argument("Threads per block exceed the active GPU/kernel limit");
     KernelSamples result;
     result.output.resize(rgb.size() / 3);
     result.milliseconds.reserve(options.iterations);
     DeviceBuffer input(rgb.size()), output(result.output.size());
     check(cudaMemcpy(input.data, rgb.data(), rgb.size(), cudaMemcpyHostToDevice), "upload benchmark RGB");
-    constexpr unsigned threads = 256;
+    const unsigned threads = options.threads_per_block;
     const auto blocks = static_cast<unsigned>((result.output.size() + threads - 1) / threads);
     const auto launch = [&] {
         rgb_to_gray<<<blocks, threads>>>(input.data, output.data, result.output.size());

@@ -6,6 +6,7 @@ namespace image {
 struct BenchmarkOptions {
     int iterations = 50;
     int warmup = 5;
+    unsigned threads_per_block = 256;
 };
 struct TimingSummary {
     double min_ms;
