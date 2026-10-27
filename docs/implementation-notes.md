@@ -263,6 +263,18 @@ weights from training data in another project.
 - **Practice:** Explain what Memcheck proved for these runs, what it did not prove,
   and why profiler timings are separate from normal benchmark results.
 
+### Add a CPU box blur
+
+- **Problem/approach:** create the expected answer for a 3x3 filter on grayscale8.
+  Clamp each neighbor to the image boundary, average all nine samples, and round
+  with `(sum + 4) / 9`. Separate output preserves the original neighbor values.
+- **Files:** `include/blur.h`, `src/blur.cpp`, `tests/blur.cpp`, CMake test target.
+- **Validation:** hand-calculated 1x1, 1x3, 3x1, 2x2 and impulse cases, rounding
+  around 4/9 versus 5/9, uniform white, and dimension/size rejection. The ten-check
+  suite passed after adding this target.
+- **Practice:** Why does clamping count a corner pixel more than once, and why
+  must this blur not overwrite its input while calculating later outputs?
+
 ## Entry template
 
 ### Short commit subject
