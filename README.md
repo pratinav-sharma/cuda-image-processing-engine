@@ -6,7 +6,8 @@ commit by commit, with validation evidence and interview practice questions.
 
 ## Minimal CUDA C++ project
 
-The starter project converts packed RGB8 images to grayscale on a real CUDA GPU.
+The project converts packed RGB8 images to grayscale on a real CUDA GPU and
+compares CPU, global-memory GPU, and shared-memory GPU 3x3 blur implementations.
 The independent CPU reference and GPU kernel use integer luminance
 `(77 * R + 150 * G + 29 * B + 128) / 256`, rounded down after adding 128.
 Image file support uses two vendored stb headers; no separate image-library
@@ -15,12 +16,17 @@ separate benchmark compares CPU, full GPU conversion, and resident-kernel timing
 
 Targets:
 
-- `image_processing`: C++ CPU reference and CUDA kernel library.
+- `image_processing`: CPU references, CUDA grayscale/blur kernels, and timing APIs.
 - `image_io`: PNG/JPEG/BMP loading and single-channel grayscale PNG writing.
 - `image_demo`: loads an image and saves a verified grayscale PNG, or generates a
   1920x1080 image when invoked without arguments.
 - `image_benchmark`: benchmarks an actual image, prints median/p95/min/max times,
   and optionally exports every sample as CSV and saves a verified grayscale PNG.
+- `blur_benchmark`: compares CPU/full-GPU/resident blur on an actual image using
+  `--kernel global` or `--kernel shared`, with optional CSV and blurred PNG output.
+- `blur_correctness`: known border/rounding cases and 120 generated GPU/CPU
+  comparisons across both kernels, including tiny images and partial 16x16 tiles.
+- `blur_benchmark_correctness`: validates sample counts, options and timed outputs.
 - `image_correctness`: known colors, empty/invalid input, and 28 image comparisons
   across seven sizes and four patterns (black, white, alternating, seeded random).
   Includes 1, 255, 256, and 257 pixels and non-square images to test block boundaries.
@@ -343,6 +349,33 @@ to change this machine setting. The profiling script never changes it
 automatically. Keep the failed log, then rerun Memcheck into a new output folder
 after the interface is enabled. No successful sanitizer result should be claimed
 from an initialization failure.
+
+### Profile and check the blur
+
+The existing script also accepts `-Operation BlurGlobal` and `BlurShared`;
+omitting it preserves the original `Grayscale` behavior. Rebuild `build-profile`
+after adding blur, using the profiling-build commands above, then run:
+
+```powershell
+.\scripts\Profile-Grayscale.ps1 -Tool Systems -Operation BlurGlobal -Image "C:\path\to\photo.jpg"
+.\scripts\Profile-Grayscale.ps1 -Tool Compute -Operation BlurShared -Image "C:\path\to\photo.jpg"
+.\scripts\Profile-Grayscale.ps1 -Tool Memcheck -Operation BlurShared -Image "C:\path\to\photo.jpg"
+.\scripts\Profile-Grayscale.ps1 -Tool Racecheck -Operation BlurShared -Image ".\tests\fixtures\rgb.png"
+.\scripts\Profile-Grayscale.ps1 -Tool Synccheck -Operation BlurShared -Image ".\tests\fixtures\rgb.png"
+```
+
+Compute still requires an Administrator PowerShell. Use either blur operation
+with Systems/Compute/Memcheck to compare variants. Blur reports are named
+`blur.nsys-rep` and `blur.ncu-rep`/`.ncu-repz`; the fixed 16x16 launch requires
+the default `-Threads 256`.
+
+Each sanitizer mode first runs the blur correctness and benchmark test executables
+(which cover both kernels and partial tiles), then the selected actual-image
+benchmark. Memcheck checks accesses/leaks; Racecheck checks shared-memory hazards;
+Synccheck checks synchronization usage. Every mode uses error exit code 42.
+Racecheck can be extremely slow on the 9.2-megapixel image; the small fixture
+above is suitable for a quick walkthrough. Instrumented timing values have no
+performance meaning. The actual-image runs and their logs are retained separately.
 
 The first successful RTX 4060 timeline and retained CSV evidence are documented
 in [the profiling record](benchmarks/profiling-2026-10-26/README.md). Its ten

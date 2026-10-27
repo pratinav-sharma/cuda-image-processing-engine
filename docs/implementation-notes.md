@@ -328,6 +328,20 @@ weights from training data in another project.
 - **Practice:** Which work is excluded from the full blur timer, and why is that
   different from the complete input-image-to-output-file pipeline?
 
+### Profile and check the blur
+
+- **Problem/approach:** reuse the profiling workflow with an operation selector
+  rather than duplicating it. Choose the correct executable/kernel filter and
+  test suite, preserve grayscale defaults, and add Racecheck/Synccheck for shared
+  memory and barrier validation. Each diagnostic retains its own metadata/logs.
+- **Files:** `scripts/Profile-Grayscale.ps1`, README usage and target list.
+- **Validation:** both Memcheck variants, shared Racecheck/Synccheck, both Systems
+  traces, and the original grayscale Systems smoke test completed successfully.
+  All 14 profiling-build tests passed. The counter reports are retained in the
+  subsequent comparison evidence update.
+- **Practice:** Which bugs would Racecheck/Synccheck find that a CPU/GPU output
+  comparison might miss? Why is a sanitizer's very slow timing not a GPU speed result?
+
 ## Entry template
 
 ### Short commit subject
