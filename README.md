@@ -216,6 +216,50 @@ larger than that spread. These results do not establish a universal fastest
 configuration. The default remains 256. All nine tests passed, and all 1350 raw
 samples are retained in [the block-size comparison](benchmarks/block-sizes-2026-10-26.md).
 
+## CPU, global-memory GPU, and shared-memory box blur
+
+The 3x3 blur operates on grayscale8. Each output is the nearest-integer mean
+`(sum + 4) / 9` of nine samples. Outside-image coordinates clamp to the nearest
+border pixel; output dimensions are unchanged. Input and output buffers are
+separate. Both GPU variants use fixed 16x16 blocks and 2D ceiling-division grids.
+
+The global kernel reads nine global samples per output. The shared kernel loads
+an 18x18 tile (including the one-pixel halo), synchronizes the whole block once,
+then reads its nine samples from shared memory. Threads outside a partial image
+tile still load and reach `__syncthreads()` before returning. The global kernel
+needs no inter-thread barrier. Shared memory is an experiment, not a promise of
+better performance: hardware caches can already reuse the basic kernel's reads.
+
+Build with the existing Release commands, then compare an actual image:
+
+```powershell
+. .\scripts\Enter-DevEnvironment.ps1
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
+.\build\blur_benchmark.exe "C:\path\to\photo.jpg" --kernel global --iterations 50 --warmup 5 --csv "build\blur-global.csv" --output "build\blur-global.png"
+.\build\blur_benchmark.exe "C:\path\to\photo.jpg" --kernel shared --iterations 50 --warmup 5 --csv "build\blur-shared.csv" --output "build\blur-shared.png"
+.\build\blur_benchmark.exe --help
+```
+
+Choose new output filenames on each run. CSV and PNG output are optional and
+preserve existing files. Kernel defaults to `global`; iterations/warmups default
+to 50/5 with the same 1-10000 / 1-1000 ranges as grayscale. Blur does not expose
+`--threads`; both variants use the same 16x16 shape to compare memory strategies.
+
+Decode and CPU grayscale preparation happen once before blur timing. CPU/full GPU
+use host timers and alternate order; full GPU includes host output/device
+allocation, upload, launch, synchronization, download, and device frees. Resident
+CUDA events bracket only kernels, with one upload before warmups and one final
+download afterward. Every measured full result and final resident output are
+checked against CPU. Warmups, validation, image I/O and CSV writing are excluded.
+This is blur on already prepared grayscale, not an end-to-end RGB/blur/PNG timing.
+
+CSV retains all CPU/full-GPU/kernel samples with image, kernel variant, warmups,
+2D block/grid, build, method and iteration. The CPU baseline uses one thread;
+its CSV rows carry GPU configuration metadata. Median/p95/min/max are shown;
+no samples are discarded. Tests cover known edge/rounding cases, 120 generated
+global/shared GPU comparisons, partial tiles, invalid input and benchmark counts.
+
 ## Profiling build
 
 Use a separate optimized build with CUDA source-line information:

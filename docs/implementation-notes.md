@@ -316,6 +316,18 @@ weights from training data in another project.
 - **Practice:** Why must CUDA events be synchronized before reading elapsed time,
   and why does resident timing need a separate full-function measurement?
 
+### Try the blur on a real image
+
+- **Problem/approach:** expose `blur_benchmark` with global/shared selection,
+  optional verified PNG output, and every raw timing sample in CSV. Prepare
+  grayscale on CPU before the timers so the comparison isolates the blur.
+- **Files:** `src/blur_benchmark_main.cpp`, CMake CLI tests, README commands.
+- **Validation:** both fixture CLI variants, help, and the full 14-check suite
+  passed. Actual-image output and repeated performance results are saved in the
+  following evidence checkpoint; printed blur speedup excludes preparation/I/O.
+- **Practice:** Which work is excluded from the full blur timer, and why is that
+  different from the complete input-image-to-output-file pipeline?
+
 ## Entry template
 
 ### Short commit subject
