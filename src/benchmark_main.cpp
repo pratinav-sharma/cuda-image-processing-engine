@@ -11,7 +11,7 @@
 
 namespace {
 void usage() {
-    std::cout << "Usage: image_benchmark input-image [--iterations 50] [--warmup 5]\n"
+    std::cout << "Usage: image_benchmark input-image [--iterations 50] [--warmup 5] [--threads 256]\n"
                  "                       [--csv results.csv] [--output grayscale.png]\n"
                  "Compare CPU, full GPU conversion, and resident GPU kernel timing.\n"
                  "Input: PNG/JPEG/BMP. Outputs must be new files; nothing is overwritten.\n";
@@ -44,11 +44,13 @@ void save_csv(const std::filesystem::path& path, const std::filesystem::path& in
     if (!output) throw std::runtime_error("Cannot create benchmark CSV: " + path.u8string());
     output.imbue(std::locale::classic());
     output << std::setprecision(9)
-           << "input,width,height,warmup,build,method,iteration,milliseconds\n";
+           << "input,width,height,warmup,threads_per_block,blocks,build,method,iteration,milliseconds\n";
     const auto write = [&](const char* method, const std::vector<double>& samples) {
         for (std::size_t i = 0; i < samples.size(); ++i)
             output << csv_quote(input.u8string()) << ',' << loaded.width << ',' << loaded.height << ','
-                   << options.warmup << ',' << IMAGE_BUILD_CONFIG << ',' << method << ',' << i + 1 << ',' << samples[i] << '\n';
+                   << options.warmup << ',' << options.threads_per_block << ','
+                   << (loaded.pixels.size() / 3 + options.threads_per_block - 1) / options.threads_per_block << ','
+                   << IMAGE_BUILD_CONFIG << ',' << method << ',' << i + 1 << ',' << samples[i] << '\n';
     };
     write("cpu", result.cpu_ms);
     write("gpu_full", result.gpu_total_ms);
@@ -84,11 +86,12 @@ int main(int argc, char* argv[]) {
         image::BenchmarkOptions options;
         for (int i = 2; i < argc; ++i) {
             const auto option = std::filesystem::path(argv[i]).u8string();
-            if (option != "--iterations" && option != "--warmup" && option != "--csv" && option != "--output")
+            if (option != "--iterations" && option != "--warmup" && option != "--threads" && option != "--csv" && option != "--output")
                 throw std::invalid_argument("Unknown option: " + option);
             if (++i == argc) throw std::invalid_argument("Missing value for " + option);
             if (option == "--iterations") options.iterations = parse_count(std::filesystem::path(argv[i]).u8string(), 10000, option);
             else if (option == "--warmup") options.warmup = parse_count(std::filesystem::path(argv[i]).u8string(), 1000, option);
+            else if (option == "--threads") options.threads_per_block = static_cast<unsigned>(parse_count(std::filesystem::path(argv[i]).u8string(), 1024, option));
             else if (option == "--csv") csv_path = std::filesystem::path(argv[i]);
             else output_path = std::filesystem::path(argv[i]);
         }
@@ -99,10 +102,16 @@ int main(int argc, char* argv[]) {
         const auto loaded = image::load_rgb(input);
         const double load_ms = std::chrono::duration<double, std::milli>(Clock::now() - load_start).count();
         image::print_device_info();
+        const unsigned thread_limit = image::max_grayscale_threads_per_block();
+        if (options.threads_per_block > thread_limit)
+            throw std::invalid_argument("Threads per block exceed the active GPU/kernel limit of " + std::to_string(thread_limit));
         std::cout << "Input: " << input.u8string() << "\nImage: " << loaded.width << 'x' << loaded.height
                   << " (" << loaded.pixels.size() / 3 << " pixels)\nBuild: " << IMAGE_BUILD_CONFIG
                   << "; CPU baseline: single thread\nWarmups: " << options.warmup
-                  << "; measured samples per method: " << options.iterations << '\n';
+                  << "; measured samples per method: " << options.iterations << '\n'
+                  << "Threads per block: " << options.threads_per_block << "; blocks: "
+                  << (loaded.pixels.size() / 3 + options.threads_per_block - 1) / options.threads_per_block
+                  << "; GPU/kernel thread limit: " << thread_limit << '\n';
         const auto result = image::benchmark_grayscale(loaded.pixels, options);
         const auto cpu = image::summarize_timings(result.cpu_ms);
         const auto full = image::summarize_timings(result.gpu_total_ms);
