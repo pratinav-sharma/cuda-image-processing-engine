@@ -1,6 +1,9 @@
 # cuda-image-processing-engine
 GPU-accelerated image processing in CUDA C++, featuring custom kernels, CPU/GPU benchmarks, and memory optimization experiments.
 
+The [implementation journal](docs/implementation-notes.md) explains our approach
+commit by commit, with validation evidence and interview practice questions.
+
 ## Minimal CUDA C++ project
 
 The starter project converts packed RGB8 images to grayscale on a real CUDA GPU.
