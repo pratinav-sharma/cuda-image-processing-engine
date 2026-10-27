@@ -213,6 +213,22 @@ larger than that spread. These results do not establish a universal fastest
 configuration. The default remains 256. All nine tests passed, and all 1350 raw
 samples are retained in [the block-size comparison](benchmarks/block-sizes-2026-10-26.md).
 
+## Profiling build
+
+Use a separate optimized build with CUDA source-line information:
+
+```powershell
+. .\scripts\Enter-DevEnvironment.ps1
+cmake -S . -B build-profile -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES=89 -DIMAGE_CUDA_LINEINFO=ON
+cmake --build build-profile --parallel
+ctest --test-dir build-profile --output-on-failure
+```
+
+`IMAGE_CUDA_LINEINFO` adds `-lineinfo` only to CUDA compilation. This lets NVIDIA
+tools connect GPU instructions to source lines while retaining Release
+optimization; it does not enable the `-G` device-debug build mode. Keep timings
+collected under a profiler separate from ordinary benchmark results.
+
 ## Windows setup
 
 Use 64-bit Windows, an NVIDIA GPU and driver, CUDA Toolkit, Visual Studio 2022
