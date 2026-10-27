@@ -302,6 +302,20 @@ weights from training data in another project.
   but unsafe before the shared kernel's barrier? Why might caches make this
   shared version slower despite fewer explicit global reads?
 
+### Time both blur kernels
+
+- **Problem/approach:** measure CPU and complete GPU blur using a host timer, and
+  resident kernel execution using CUDA events. Reuse one uploaded grayscale
+  buffer for resident launches. Keep decoding and grayscale preparation outside
+  blur timers; alternate CPU/full-GPU order and validate every measured output.
+- **Files:** `src/blur_benchmark.cpp`, `src/blur.cu`, `include/blur_benchmark.h`,
+  `tests/blur_benchmark.cpp`. Both blur kernels use fixed 16x16 blocks.
+- **Validation:** counts/output checked for global/shared on 1x19 and 17x19 inputs;
+  unsupported block settings and invalid iteration counts rejected. Eleven CTest
+  checks passed; no performance thresholds were asserted.
+- **Practice:** Why must CUDA events be synchronized before reading elapsed time,
+  and why does resident timing need a separate full-function measurement?
+
 ## Entry template
 
 ### Short commit subject

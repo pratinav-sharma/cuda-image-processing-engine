@@ -1,4 +1,5 @@
 #include "blur.h"
+#include "blur_benchmark.h"
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
@@ -17,6 +18,13 @@ struct DeviceBuffer {
     ~DeviceBuffer() { if (data) cudaFree(data); }
     DeviceBuffer(const DeviceBuffer&) = delete;
     DeviceBuffer& operator=(const DeviceBuffer&) = delete;
+};
+struct Event {
+    cudaEvent_t value{};
+    Event() { check(cudaEventCreate(&value), "create blur event"); }
+    ~Event() { cudaEventDestroy(value); }
+    Event(const Event&) = delete;
+    Event& operator=(const Event&) = delete;
 };
 __device__ int clamp_coordinate(int coordinate, int extent) {
     return max(0, min(coordinate, extent - 1));
@@ -85,5 +93,31 @@ Bytes box_blur_gpu(const Bytes& gray, int width, int height, BlurKernel kernel) 
     check(cudaDeviceSynchronize(), "box blur execution");
     check(cudaMemcpy(output.data(), output_device.data, output.size(), cudaMemcpyDeviceToHost), "download blur output");
     return output;
+}
+KernelSamples measure_box_blur_kernel(const Bytes& gray, int width, int height, BlurKernel kernel,
+                                     const BenchmarkOptions& options) {
+    validate_blur_input(gray, width, height);
+    validate_blur_benchmark_options(options);
+    validate_kernel(kernel);
+    KernelSamples result;
+    result.output.resize(gray.size());
+    result.milliseconds.reserve(options.iterations);
+    DeviceBuffer input_device(gray.size()), output_device(gray.size());
+    check(cudaMemcpy(input_device.data, gray.data(), gray.size(), cudaMemcpyHostToDevice), "upload resident blur input");
+    const auto launch = [&] { launch_blur(input_device.data, output_device.data, width, height, kernel); };
+    for (int i = 0; i < options.warmup; ++i) launch();
+    check(cudaDeviceSynchronize(), "synchronize blur warmups");
+    Event start, stop;
+    for (int i = 0; i < options.iterations; ++i) {
+        check(cudaEventRecord(start.value), "record blur start");
+        launch();
+        check(cudaEventRecord(stop.value), "record blur stop");
+        check(cudaEventSynchronize(stop.value), "wait for blur stop");
+        float milliseconds = 0;
+        check(cudaEventElapsedTime(&milliseconds, start.value, stop.value), "measure blur kernel");
+        result.milliseconds.push_back(milliseconds);
+    }
+    check(cudaMemcpy(result.output.data(), output_device.data, result.output.size(), cudaMemcpyDeviceToHost), "validate resident blur output");
+    return result;
 }
 }
