@@ -80,7 +80,7 @@ root (substitute your own PNG/JPEG/BMP path):
 . .\scripts\Enter-DevEnvironment.ps1
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES=89
 cmake --build build --parallel
-.\build\image_benchmark.exe "C:\path\to\photo.jpg" --iterations 50 --warmup 5
+.\build\image_benchmark.exe "C:\path\to\photo.jpg" --iterations 50 --warmup 5 --threads 256
 ```
 
 To retain raw samples and a viewable result, use new output filenames:
@@ -91,15 +91,16 @@ To retain raw samples and a viewable result, use new output filenames:
 ctest --test-dir build --output-on-failure --verbose
 ```
 
-Defaults are 50 measured iterations and 5 warmups. Accepted ranges are 1-10000
-iterations and 1-1000 warmups. CSV and PNG outputs are optional, preserve existing
+Defaults are 50 measured iterations, 5 warmups, and 256 threads per block. Accepted
+ranges are 1-10000 iterations and 1-1000 warmups. `--threads` accepts 1-1024 and
+also checks the active GPU's limits and the compiled kernel's maximum. CSV and PNG outputs are optional, preserve existing
 files, and require existing parent directories. Run without output options to
 repeat benchmarks without creating files.
 
 | Measurement | Timer and measured work |
 | --- | --- |
 | CPU full function | `steady_clock`; existing single-thread CPU conversion, including output allocation, with RGB already decoded in host memory |
-| GPU full function | `steady_clock`; existing GPU conversion, including host output allocation, device allocations, RGB upload, kernel, synchronization, grayscale download, and device-buffer frees |
+| GPU full function | `steady_clock`; GPU conversion, including launch-limit validation, host output allocation, device allocations, RGB upload, kernel, synchronization, grayscale download, and device-buffer frees |
 | GPU resident kernel | CUDA events around each kernel; device buffers are allocated and RGB uploaded once before timing, and final output is downloaded and checked afterward |
 
 Both full-function results end in host memory. Returned output-vector destruction
@@ -120,7 +121,10 @@ The report prints median, nearest-rank p95, minimum, and maximum in milliseconds
 Ratios divide the CPU median by the GPU median: above 1 favors GPU; below 1 favors
 CPU. A zero GPU median reports `n/a` instead of dividing by zero. No outliers are
 discarded. CSV contains one row per sample per method, with input path, dimensions,
-warmup count, build configuration, method, iteration, and milliseconds.
+warmup count, threads per block, calculated block count, build configuration,
+method, iteration, and milliseconds. CPU rows carry the run's GPU configuration;
+the CPU conversion itself still uses one thread. The older 2026-10-25 snapshot
+predates these extra launch-configuration columns and used the fixed size 256.
 
 Image decode and optional PNG encode/write are timed once and printed separately.
 They are excluded from conversion speedups, as are CSV writing and console output.
@@ -150,6 +154,64 @@ recomputed from the CSV. See [benchmarks/README.md](benchmarks/README.md) for th
 exact recorded command, environment, and all 150 raw samples. Timings vary with
 image size, cache state, clocks, other applications, and GPU scheduling; tests
 assert correctness and bookkeeping, never performance thresholds.
+
+### Changing the block size
+
+Compare sizes on the same image without rebuilding:
+
+```powershell
+foreach ($threads in 128, 256, 512) {
+    .\build\image_benchmark.exe "C:\path\to\photo.jpg" --threads $threads --iterations 50 --warmup 5 --csv "build\threads-$threads.csv"
+    if ($LASTEXITCODE -ne 0) { throw "Benchmark failed for $threads threads" }
+}
+```
+
+Use new CSV names for subsequent comparisons. The console prints both the chosen
+threads per block and the calculated number of blocks. The normal `image_demo`
+continues to use the default of 256. Legal sizes need not be multiples of 32,
+although warp-sized multiples are the usual starting point for tuning.
+
+The setting travels through the code in four small steps:
+
+1. `BenchmarkOptions::threads_per_block` in `include/benchmark.h` stores the value,
+   with a default of 256.
+2. `src/benchmark_main.cpp` parses `--threads`, prints the launch configuration,
+   and records it in CSV. The code rejects zero, negative, malformed, and
+   oversized values, including a missing option argument.
+3. `src/benchmark.cpp` passes the setting to every full GPU warmup and measured
+   conversion. The resident-kernel measurement reads the same options.
+4. `src/grayscale.cu` uses that value in `<<<blocks, threads>>>`. The pixel-index
+   calculation already uses `blockDim.x`, so each thread still finds the right
+   pixel automatically. The bounds check handles partial final blocks.
+
+The launch count remains ceiling division:
+
+```cpp
+const unsigned threads = threads_per_block;
+const auto blocks = static_cast<unsigned>((gray.size() + threads - 1) / threads);
+rgb_to_gray<<<blocks, threads>>>(input.data, output.data, gray.size());
+```
+
+`max_grayscale_threads_per_block()` queries the active device and the compiled
+kernel. The minimum of the device's maximum block size, maximum x dimension, and
+kernel's maximum block size is the supported limit. This machine reports 1024.
+Those validation queries are included in the full-function timer and occur
+outside the resident-kernel event window.
+
+On 2026-10-26, three rounds of the 3840x2400 JPEG comparison produced these pooled
+medians (150 samples per method and block size):
+
+| Threads/block | Blocks | CPU ms | Full GPU ms | Kernel-only ms |
+| ---: | ---: | ---: | ---: | ---: |
+| 128 | 72,000 | 11.2667 | 6.1064 | 0.1585 |
+| 256 | 36,000 | 11.3265 | 6.0764 | 0.1604 |
+| 512 | 18,000 | 11.1190 | 6.1535 | 0.1628 |
+
+128 had the lowest kernel median; 256 had the lowest full-conversion median.
+The full-conversion medians differ by less than 1.3%, and per-round variation is
+larger than that spread. These results do not establish a universal fastest
+configuration. The default remains 256. All nine tests passed, and all 1350 raw
+samples are retained in [the block-size comparison](benchmarks/block-sizes-2026-10-26.md).
 
 ## Windows setup
 

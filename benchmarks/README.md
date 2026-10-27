@@ -1,5 +1,9 @@
 # Recorded real-image benchmark
 
+The later [block-size comparison](block-sizes-2026-10-26.md) tries 128, 256, and
+512 threads per block over three rotated rounds, retaining all 1350 samples.
+The original fixed-256 benchmark below is preserved unchanged.
+
 `rtx4060-3840x2400.csv` is an unchanged copy of the 150 raw samples from a single
 run on 2026-10-25. It includes every sample, including the slowest kernel event.
 No filtering, best-run selection, or performance threshold was applied.
