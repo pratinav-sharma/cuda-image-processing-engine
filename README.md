@@ -268,7 +268,7 @@ to 256; `-BuildDirectory` defaults to `build-profile` beside the source tree.
 - **Systems** saves a `.nsys-rep` timeline and CSV summaries of CUDA API calls,
   kernels, GPU transfers, and individual GPU operations. CPU sampling and context
   switch collection are disabled; this capture focuses on CUDA activity.
-- **Compute** saves a `.ncu-rep` for the first full-conversion kernel after the
+- **Compute** saves a `.ncu-rep` or compressed `.ncu-repz` for the first full-conversion kernel after the
   three warmup launches. It collects launch configuration, occupancy, speed-of-light,
   and memory-workload sections, with kernel replay and cache flushing enabled.
   It leaves GPU clocks unchanged and imports source for line correlation. The

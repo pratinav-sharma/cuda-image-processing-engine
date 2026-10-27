@@ -236,6 +236,18 @@ weights from training data in another project.
 - **Practice:** Trace one input image through decoding, CPU reference, GPU memory,
   kernel indexing, correctness checking, and output saving in your own words.
 
+### Read compressed GPU reports
+
+- **Problem/approach:** Nsight Compute 2026.3.0 successfully captured a kernel but
+  wrote `.ncu-repz`; our import step assumed `.ncu-rep`. Discover exactly one of
+  the two report formats, record its path, and import that file. Preserve the
+  original report and failed postprocessing metadata.
+- **Files:** `scripts/Profile-Grayscale.ps1`, README.
+- **Validation:** manually imported the captured compressed report and read its
+  launch, occupancy and memory sections. A fresh complete workflow is recorded
+  with the following profiling evidence update.
+- **Practice:** How can capture succeed even when the wrapper script reports failure?
+
 ## Entry template
 
 ### Short commit subject

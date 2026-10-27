@@ -80,8 +80,12 @@ try {
                 '--section', 'MemoryWorkloadAnalysis', '--replay-mode', 'kernel', '--cache-control', 'all',
                 '--clock-control', 'none', '--import-source', 'yes', '--export', (Join-Path $output 'grayscale'),
                 $executable) + $benchmarkArguments) 'compute.log'
-            Invoke-Logged $toolPath @('--import', (Join-Path $output 'grayscale.ncu-rep'), '--page', 'details') 'compute-details.log'
-            Invoke-Logged $toolPath @('--import', (Join-Path $output 'grayscale.ncu-rep'), '--page', 'raw', '--csv') 'compute-raw.csv'
+            $reports = @('grayscale.ncu-rep', 'grayscale.ncu-repz' | ForEach-Object { Join-Path $output $_ } |
+                Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
+            if ($reports.Count -ne 1) { throw 'Expected exactly one Nsight Compute report after capture.' }
+            $metadata.report = $reports[0]
+            Invoke-Logged $toolPath @('--import', $reports[0], '--page', 'details') 'compute-details.log'
+            Invoke-Logged $toolPath @('--import', $reports[0], '--page', 'raw', '--csv') 'compute-raw.csv'
         }
         'Memcheck' {
             $checks = @('--tool', 'memcheck', '--leak-check', 'full', '--error-exitcode', '42')
