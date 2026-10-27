@@ -44,23 +44,37 @@ int main() {
         rejects([] { image::validate_benchmark_options({10001,1}); });
         rejects([] { image::validate_benchmark_options({1,0}); });
         rejects([] { image::validate_benchmark_options({1,1001}); });
+        rejects([] { image::validate_benchmark_options({1,1,0}); });
+        rejects([] { image::validate_benchmark_options({1,1,1025}); });
         rejects([] { image::benchmark_grayscale({}, {1,1}); });
         rejects([] { image::benchmark_grayscale({1,2}, {1,1}); });
         rejects([] { image::measure_grayscale_kernel({}, {1,1}); });
         rejects([] { image::measure_grayscale_kernel({1,2}, {1,1}); });
         image::validate_benchmark_options({10000,1000});
 
+        require(image::BenchmarkOptions{}.threads_per_block == 256, "Default block size changed");
+        const unsigned limit = image::max_grayscale_threads_per_block();
+        require(limit > 0 && limit <= 1024, "Invalid GPU/kernel thread limit");
+        const image::Bytes red{255,0,0};
+        rejects([&] { image::grayscale_gpu(red, 0); });
+        rejects([&] { image::grayscale_gpu(red, limit + 1); });
+        rejects([&] { image::measure_grayscale_kernel(red, {1,1,limit + 1}); });
+
         // Exercise both the one-thread case and a partial final CUDA block.
-        for (const std::size_t pixels : {std::size_t{1}, std::size_t{257}}) {
+        for (const std::size_t pixels : {std::size_t{1}, std::size_t{257}, std::size_t{513}}) {
             image::Bytes rgb(pixels * 3);
             for (std::size_t i = 0; i < rgb.size(); ++i) rgb[i] = static_cast<std::uint8_t>((i * 37) % 256);
-            const auto result = image::benchmark_grayscale(rgb, {3,2});
-            require(result.grayscale == image::grayscale_cpu(rgb), "Timed output differs from CPU reference");
-            check_samples(result.cpu_ms, 3);
-            check_samples(result.gpu_total_ms, 3);
-            check_samples(result.gpu_kernel_ms, 3);
+            // Non-warp-multiple sizes are legal too; the limit is an upper bound.
+            for (const unsigned threads : {1u, 33u, 128u, 256u, 512u, limit}) {
+                if (threads > limit) continue;
+                const auto result = image::benchmark_grayscale(rgb, {3,2,threads});
+                require(result.grayscale == image::grayscale_cpu(rgb), "Timed output differs from CPU reference");
+                check_samples(result.cpu_ms, 3);
+                check_samples(result.gpu_total_ms, 3);
+                check_samples(result.gpu_kernel_ms, 3);
+            }
         }
-        std::cout << "PASS: timing summaries, option validation, exact sample counts, and GPU benchmark correctness.\n";
+        std::cout << "PASS: timing summaries, launch limits, defaults, sample counts, and GPU correctness across block sizes.\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';
