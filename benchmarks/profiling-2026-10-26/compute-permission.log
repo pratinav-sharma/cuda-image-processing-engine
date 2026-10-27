@@ -1,0 +1,25 @@
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 4164 (C:\Users\prati\OneDrive\Documents\ChatGPT\New project\cuda-image-processing-engine\build-profile\image_benchmark.exe)
+==ERROR== ERR_NVGPUCTRPERM - The user does not have permission to access NVIDIA GPU Performance Counters on the target device 0. For instructions on enabling permissions and to get more information see https://developer.nvidia.com/ERR_NVGPUCTRPERM
+==PROF== Disconnected from process 4164
+GPU: NVIDIA GeForce RTX 4060, compute capability 8.9, memory 8187 MiB
+CUDA driver API: 13050, runtime: 13050
+Input: C:\Windows\Web\Wallpaper\ThemeA\img20.jpg
+Image: 3840x2400 (9216000 pixels)
+Build: Release; CPU baseline: single thread
+Warmups: 3; measured samples per method: 10
+Threads per block: 256; blocks: 36000; GPU/kernel thread limit: 1024
+
+Conversion timing (milliseconds)          Median         P95         Min         Max
+CPU function (host -> host)              15.9358     16.4133     15.2677     16.4133
+GPU full function (host -> host)          6.1848      6.4146      5.8515      6.4146
+GPU kernel (resident device data)         0.3214      0.3420      0.3063      0.3420
+
+Full GPU conversion speedup (CPU/GPU): 2.5766x
+Kernel-only timing ratio (CPU/kernel): 49.5862x
+A ratio above 1 favors GPU; below 1 favors CPU. Kernel-only is not full conversion speedup.
+Full GPU includes output/device allocation, upload, kernel, synchronization, download, and device frees.
+Kernel events exclude allocations/transfers; buffers stay on the device and output is checked afterward.
+CPU/GPU full measurements alternate order; CPU/GPU output checks are outside timers.
+Image decode (once, excluded from conversion timings): 73.8003 ms
+PASS: measured CPU/GPU full outputs and final resident-kernel output match the CPU reference.

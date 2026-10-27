@@ -1,0 +1,55 @@
+Start (ns),Duration (ns),CorrId,GrdX,GrdY,GrdZ,BlkX,BlkY,BlkZ,Reg/Trd,StcSMem (MB),DymSMem (MB),Bytes (MB),Throughput (MB/s),SrcMemKd,DstMemKd,Device,Ctx,GreenCtx,Strm,Name
+810320616,2324333,133,,,,,,,,,,27.648,11888.640,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+812674165,142785,135,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+812837494,932037,138,,,,,,,,,,9.216,9879.552,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+829381329,2420046,146,,,,,,,,,,27.648,11418.624,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+831831135,142433,148,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+831988480,926149,151,,,,,,,,,,9.216,9944.064,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+847579670,2416558,159,,,,,,,,,,27.648,11418.624,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+850024932,142625,161,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+850182341,909861,164,,,,,,,,,,9.216,10128.384,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+866567327,2447470,172,,,,,,,,,,27.648,11280.384,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+869045005,142209,174,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+869202094,938245,177,,,,,,,,,,9.216,9815.040,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+872989539,2422574,185,,,,,,,,,,27.648,11390.976,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+875442065,142592,187,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+875601010,925413,190,,,,,,,,,,9.216,9953.280,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+901924675,2441454,198,,,,,,,,,,27.648,11308.032,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+904395921,142305,200,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+904552178,928325,203,,,,,,,,,,9.216,9925.632,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+908623145,2419309,211,,,,,,,,,,27.648,11418.624,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+911070646,142657,213,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+911225591,916645,216,,,,,,,,,,9.216,10045.440,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+937880299,2417261,224,,,,,,,,,,27.648,11418.624,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+940327288,142177,226,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+940484537,950565,229,,,,,,,,,,9.216,9695.232,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+944624368,2403053,237,,,,,,,,,,27.648,11501.568,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+947057790,142368,239,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+947215518,922886,242,,,,,,,,,,9.216,9980.928,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+974989688,2374766,250,,,,,,,,,,27.648,11639.808,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+977394406,142497,252,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+977553255,928197,255,,,,,,,,,,9.216,9925.632,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+981791774,2393261,263,,,,,,,,,,27.648,11529.216,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+984213740,142464,265,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+984371244,928454,268,,,,,,,,,,9.216,9925.632,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+1012548873,2448685,276,,,,,,,,,,27.648,11280.384,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+1015027510,142401,278,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1015185143,915877,281,,,,,,,,,,9.216,10054.656,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+1019338926,2464078,289,,,,,,,,,,27.648,11197.440,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+1021832636,142273,291,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1021989853,928005,294,,,,,,,,,,9.216,9925.632,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]
+1037531699,2440814,302,,,,,,,,,,27.648,11308.032,Pageable,Device,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Host-to-Device]
+1040004737,142369,304,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1040148418,161792,307,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1040311394,161473,310,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1040532388,161441,317,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1040720197,161281,324,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1040901222,161505,331,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1041080583,161345,338,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1041265768,161217,345,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1041445033,161505,352,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1041624586,161537,359,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1041804043,160929,366,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1041983788,161473,373,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1042163661,161505,380,36000,1,1,256,1,1,16,0.000,0.000,,,,,NVIDIA GeForce RTX 4060 (0),1,,7,"<unnamed>::rgb_to_gray(const unsigned char *, unsigned char *, unsigned long long)"
+1042340654,958469,385,,,,,,,,,,9.216,9612.288,Device,Pageable,NVIDIA GeForce RTX 4060 (0),1,,7,[CUDA memcpy Device-to-Host]

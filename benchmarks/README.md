@@ -1,5 +1,9 @@
 # Recorded real-image benchmark
 
+The [first Nsight Systems timeline](profiling-2026-10-26/README.md) records CUDA
+API, kernel, and transfer evidence. Profiling data is kept separate from normal
+benchmark timing samples.
+
 The later [block-size comparison](block-sizes-2026-10-26.md) tries 128, 256, and
 512 threads per block over three rotated rounds, retaining all 1350 samples.
 The original fixed-256 benchmark below is preserved unchanged.

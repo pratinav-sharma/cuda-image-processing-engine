@@ -1,0 +1,68 @@
+{
+  "started": "2026-10-26T22:08:34.1817442-07:00",
+  "status": "failed",
+  "tool": "C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.3.0\\target\\windows-desktop-win7-x64\\ncu.exe",
+  "toolVersion": [
+    "NVIDIA (R) Nsight Compute Command Line Profiler",
+    "Copyright (c) 2018-2026 NVIDIA Corporation",
+    "Version 2026.3.0.0 (build 38525999) (public-release)"
+  ],
+  "image": "C:\\Windows\\Web\\Wallpaper\\ThemeA\\img20.jpg",
+  "imageSHA256": "6610E4C12B5CCAA2906E7584339786378D921CBAF7C4B3BC5BD585E3F955B685",
+  "executable": "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\image_benchmark.exe",
+  "executableSHA256": "CF8641670F40D9F812D6A05B11684C16B89369B91C87345470D222663A4CE8CD",
+  "build": "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile",
+  "threads": 256,
+  "head": "86413e3bfb7bcdc037b3e26bb5884084ec1cdc25",
+  "workingTree": [
+    " M README.md",
+    " M scripts/Get-ProfilingTools.ps1",
+    "?? scripts/Profile-Grayscale.ps1"
+  ],
+  "gpu": [
+    "NVIDIA GeForce RTX 4060, 621.01"
+  ],
+  "commands": [
+    {
+      "program": "C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.3.0\\target\\windows-desktop-win7-x64\\ncu.exe",
+      "arguments": [
+        "--kernel-name",
+        "regex:rgb_to_gray",
+        "--launch-skip",
+        "3",
+        "--launch-count",
+        "1",
+        "--section",
+        "SpeedOfLight",
+        "--section",
+        "LaunchStats",
+        "--section",
+        "Occupancy",
+        "--section",
+        "MemoryWorkloadAnalysis",
+        "--replay-mode",
+        "kernel",
+        "--cache-control",
+        "all",
+        "--clock-control",
+        "none",
+        "--import-source",
+        "yes",
+        "--export",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\profiles\\2026-10-26-compute\\grayscale",
+        "C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\image_benchmark.exe",
+        "C:\\Windows\\Web\\Wallpaper\\ThemeA\\img20.jpg",
+        "--iterations",
+        "10",
+        "--warmup",
+        "3",
+        "--threads",
+        "256"
+      ],
+      "exitCode": 1
+    }
+  ],
+  "note": "Instrumented diagnostic run. Do not use printed benchmark timings as normal performance results.",
+  "error": "compute.log failed with exit code 1. See C:\\Users\\prati\\OneDrive\\Documents\\ChatGPT\\New project\\cuda-image-processing-engine\\build-profile\\profiles\\2026-10-26-compute",
+  "finished": "2026-10-26T22:08:42.4932567-07:00"
+}

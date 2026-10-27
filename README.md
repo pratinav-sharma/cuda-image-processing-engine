@@ -297,6 +297,19 @@ automatically. Keep the failed log, then rerun Memcheck into a new output folder
 after the interface is enabled. No successful sanitizer result should be claimed
 from an initialization failure.
 
+The first successful RTX 4060 timeline and retained CSV evidence are documented
+in [the profiling record](benchmarks/profiling-2026-10-26/README.md). Its ten
+measured full conversions showed median GPU activity durations of 2.420942 ms
+for upload, 0.142385 ms for the kernel, and 0.928101 ms for download. These
+diagnostic durations help explain the workload; they are not full-conversion
+benchmark times.
+
+Nsight Compute counter collection is currently blocked by administrator access;
+the elevated retry was canceled at the Windows prompt. Compute Sanitizer is
+blocked by its disabled WDDM debugger interface. Both tools are installed, but
+neither check has a successful result yet. Their failed logs and precise retry
+steps are retained in the profiling record.
+
 ## Windows setup
 
 Use 64-bit Windows, an NVIDIA GPU and driver, CUDA Toolkit, Visual Studio 2022
@@ -415,4 +428,5 @@ Initial setup checks (before file I/O was added):
 
 No driver change or reboot was performed. No external setup blocker remains.
 WSL/container passthrough and Linux builds were not run because this is a native
-Windows setup. Performance benchmarks and compute-sanitizer runs were not performed.
+Windows setup. Benchmark and profiling work added after this initial setup is
+recorded in the sections above.
