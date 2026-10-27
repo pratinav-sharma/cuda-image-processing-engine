@@ -275,6 +275,19 @@ weights from training data in another project.
 - **Practice:** Why does clamping count a corner pixel more than once, and why
   must this blur not overwrite its input while calculating later outputs?
 
+### Run the blur on the GPU
+
+- **Problem/approach:** use a 2D grid of 16x16 blocks. Each thread computes one
+  `(x,y)` output and reads nine clamped samples from immutable global input.
+  Separate output avoids neighbors changing during the calculation. Partial
+  blocks return before any memory access; this kernel has no inter-thread barrier.
+- **Files:** `src/blur.cu`, `include/blur.h`, expanded `tests/blur.cpp`, CMake.
+- **Validation:** known-value GPU results and 60 generated pattern/shape comparisons
+  against CPU, including single rows/columns and 15/16/17 boundaries. The ten-check
+  CTest suite passed on the RTX 4060.
+- **Practice:** How does a 2D thread coordinate map to a row-major pixel address,
+  and why don't these threads need to wait for one another?
+
 ## Entry template
 
 ### Short commit subject

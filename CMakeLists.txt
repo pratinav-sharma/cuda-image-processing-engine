@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-add_library(image_processing src/grayscale.cpp src/grayscale.cu src/benchmark.cpp src/blur.cpp)
+add_library(image_processing src/grayscale.cpp src/grayscale.cu src/benchmark.cpp src/blur.cpp src/blur.cu)
 target_include_directories(image_processing PUBLIC include)
 set_target_properties(image_processing PROPERTIES CUDA_RUNTIME_LIBRARY Static)
 option(IMAGE_CUDA_LINEINFO "Include CUDA source lines in profiler and sanitizer reports" OFF)
