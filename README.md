@@ -266,6 +266,13 @@ its CSV rows carry GPU configuration metadata. Median/p95/min/max are shown;
 no samples are discarded. Tests cover known edge/rounding cases, 120 generated
 global/shared GPU comparisons, partial tiles, invalid input and benchmark counts.
 
+On the RTX 4060, a four-round 3840x2400 comparison recorded pooled medians of
+58.3966 ms CPU / 3.9728 ms full GPU / 0.1577 ms resident global kernel, and
+58.3571 / 3.9458 / 0.1840 ms for shared. The global full blur was about 14.70x
+faster than our single-thread CPU reference, with preparation/I/O excluded.
+The shared kernel was slower; the small full-function difference changed
+direction by round. See [all 1200 samples and methodology](benchmarks/blur-2026-10-26/README.md).
+
 ## Profiling build
 
 Use a separate optimized build with CUDA source-line information:

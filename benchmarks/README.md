@@ -1,5 +1,8 @@
 # Recorded real-image benchmark
 
+The [3x3 box blur comparison](blur-2026-10-26/README.md) retains all 1200 samples
+from global/shared variants over four alternating-order rounds.
+
 The [first Nsight Systems timeline](profiling-2026-10-26/README.md) records CUDA
 API, kernel, and transfer evidence. Profiling data is kept separate from normal
 benchmark timing samples.

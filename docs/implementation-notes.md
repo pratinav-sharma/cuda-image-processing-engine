@@ -342,6 +342,20 @@ weights from training data in another project.
 - **Practice:** Which bugs would Racecheck/Synccheck find that a CPU/GPU output
   comparison might miss? Why is a sanitizer's very slow timing not a GPU speed result?
 
+### Save the blur comparison
+
+- **Problem/approach:** compare both variants across four balanced-order rounds
+  and retain all 1200 samples. Report full-function and resident scopes separately;
+  preserve outliers and the result even when shared memory does not win.
+- **Files:** `benchmarks/blur-2026-10-26/README.md`, raw CSV and benchmark metadata;
+  main README result summary.
+- **Validation:** 200 samples per variant/method, recomputed medians/p95, all
+  measured outputs checked against CPU, identical saved PNG hashes, overwrite and
+  invalid-extension rejection. Global full blur was 14.70x faster than the current
+  single-thread CPU reference; the shared kernel was 16.65% slower than global.
+- **Practice:** Explain why this is a useful optimization experiment even though
+  shared memory lost, and qualify the 14.70x number without implying full PNG-pipeline speedup.
+
 ## Entry template
 
 ### Short commit subject
